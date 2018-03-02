@@ -38,6 +38,15 @@ ${SOURCES_PREFIX}/${LWIP_FOLDER}/src/core/ipv4/ip4_addr.c
 ${SOURCES_PREFIX}/${LWIP_FOLDER}/src/core/ipv4/ip4_frag.c
 ${SOURCES_PREFIX}/${LWIP_FOLDER}/src/core/ipv4/ip4.c
 
+${SOURCES_PREFIX}/${LWIP_FOLDER}/src/core/ipv6/ethip6.c
+${SOURCES_PREFIX}/${LWIP_FOLDER}/src/core/ipv6/dhcp6.c
+${SOURCES_PREFIX}/${LWIP_FOLDER}/src/core/ipv6/icmp6.c
+${SOURCES_PREFIX}/${LWIP_FOLDER}/src/core/ipv6/ip6_addr.c
+${SOURCES_PREFIX}/${LWIP_FOLDER}/src/core/ipv6/ip6_frag.c
+${SOURCES_PREFIX}/${LWIP_FOLDER}/src/core/ipv6/ip6.c
+${SOURCES_PREFIX}/${LWIP_FOLDER}/src/core/ipv6/mld6.c
+${SOURCES_PREFIX}/${LWIP_FOLDER}/src/core/ipv6/nd6.c
+
 ${SOURCES_PREFIX}/${LWIP_FOLDER}/src/netif/ppp/polarssl/arc4.c
 ${SOURCES_PREFIX}/${LWIP_FOLDER}/src/netif/ppp/polarssl/des.c
 ${SOURCES_PREFIX}/${LWIP_FOLDER}/src/netif/ppp/polarssl/md4.c

@@ -22,7 +22,11 @@ endif()
 set(SOS_LIB_NAME lwip)
 project(${SOS_LIB_NAME} CXX C)
 
+set(LWIP_NAME lwip-2.0.3)
+
 install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY ${LWIP_NAME}/src/include/ DESTINATION include)
 set(SOS_LIB_INCLUDE_DIRECTORIES include)
+
 
 include( ${CMAKE_SOURCE_DIR}/${SOS_BUILD_CONFIG}.cmake )

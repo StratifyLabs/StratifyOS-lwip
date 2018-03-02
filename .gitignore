@@ -1,3 +1,4 @@
 
 cmake_*
 .vscode*
+CMakeLists.txt.user
