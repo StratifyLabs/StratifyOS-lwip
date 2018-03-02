@@ -32,6 +32,7 @@
 #ifndef LWIP_HDR_LWIPOPTS_H__
 #define LWIP_HDR_LWIPOPTS_H__
 
+#include <unistd.h>
 #include <fcntl.h>
 
 /* Prevent having to link sys_arch.c (we don't test the API layers in unit tests) */

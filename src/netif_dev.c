@@ -43,8 +43,6 @@
  * something that better describes your network interface.
  */
 
-#include <unistd.h>
-#include <fcntl.h>
 
 #include "lwip/opt.h"
 
