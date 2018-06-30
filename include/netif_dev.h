@@ -8,14 +8,12 @@
 #ifndef LWIP_NETIF_DEV_H_
 #define LWIP_NETIF_DEV_H_
 
-
-#include <mcu/types.h>
+#include <sos/fs/sysfs.h>
 
 typedef struct MCU_PACK {
 	u8 hw_addr[6];
 	u16 mtu /*! Default value should be 1500 */;
-	const char * dev /*! Path to network interface device */;
-	const char * host_name /*! Host name */;
+    sysfs_shared_config_t drive_config;
 } netif_dev_config_t;
 
 

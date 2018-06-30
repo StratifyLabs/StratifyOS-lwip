@@ -26,6 +26,7 @@ set(LWIP_NAME lwip-2.0.3)
 
 install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY ${LWIP_NAME}/src/include/ DESTINATION include)
+set(SOS_LIB_DEFINITIONS HAVE_LWIP_SOCKETS_H=1)
 set(SOS_LIB_INCLUDE_DIRECTORIES include)
 
 

@@ -2,6 +2,7 @@
 set(SOURCES
 ${SOURCES_PREFIX}/netif_dev.c
 ${SOURCES_PREFIX}/sys_arch.c
+${SOURCES_PREFIX}/lwip_api.c
 
 ${SOURCES_PREFIX}/${LWIP_FOLDER}/src/api/api_lib.c
 ${SOURCES_PREFIX}/${LWIP_FOLDER}/src/api/api_msg.c
