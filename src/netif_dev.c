@@ -4,6 +4,7 @@
  *
  */
 
+#if 0
 /*
  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
  * All rights reserved.
@@ -347,3 +348,5 @@ err_t netif_dev_init(struct netif *netif, const netif_dev_config_t * config){
 
     return ERR_OK;
 }
+
+#endif
