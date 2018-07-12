@@ -131,15 +131,12 @@ err_t lwip_api_netif_input(struct netif *netif){
     /* We allocate a pbuf chain of pbufs from the pool. */
     p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
 
-    mcu_debug_log_info(MCU_DEBUG_SOCKET, "p buf is %lX", (u32)p);
-
 
     if (p != NULL) {
 
 #if ETH_PAD_SIZE
         pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
 #endif
-        mcu_debug_log_info(MCU_DEBUG_SOCKET, "Input:%d", __LINE__);
 
 
         /* We iterate over the pbuf chain until we have read the entire
@@ -153,7 +150,6 @@ err_t lwip_api_netif_input(struct netif *netif){
        * actually received size. In this case, ensure the tot_len member of the
        * pbuf is the sum of the chained pbuf len members.
        */
-            mcu_debug_log_info(MCU_DEBUG_SOCKET, "Input:%d", __LINE__);
 
             //scatter the packet into the pbuf
             memcpy(q->payload, packet_buffer + offset, q->len);
@@ -161,7 +157,6 @@ err_t lwip_api_netif_input(struct netif *netif){
 
         }
         //acknowledge that packet has been read();
-        mcu_debug_log_info(MCU_DEBUG_SOCKET, "Input:%d", __LINE__);
 
         MIB2_STATS_NETIF_ADD(netif, ifinoctets, p->tot_len);
         if (((u8_t*)p->payload)[0] & 1) {
@@ -171,7 +166,6 @@ err_t lwip_api_netif_input(struct netif *netif){
             /* unicast packet*/
             MIB2_STATS_NETIF_INC(netif, ifinucastpkts);
         }
-        mcu_debug_log_info(MCU_DEBUG_SOCKET, "Input:%d", __LINE__);
 
 #if ETH_PAD_SIZE
         pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
@@ -179,11 +173,9 @@ err_t lwip_api_netif_input(struct netif *netif){
 
         /* if no packet could be read, silently ignore this */
         if (len > 0) {
-            mcu_debug_log_info(MCU_DEBUG_SOCKET, "Input:%d (%lX) %lX", __LINE__, (u32)netif->input, (u32)p);
 
             /* pass all packets to ethernet_input, which decides what packets it supports */
             if (netif->input(p, netif) != ERR_OK) {
-                mcu_debug_log_info(MCU_DEBUG_SOCKET, "Input:%d", __LINE__);
                 LWIP_DEBUGF(NETIF_DEBUG, ("netif_dev_input: IP input error\n"));
                 pbuf_free(p);
                 p = NULL;
@@ -346,8 +338,9 @@ void lwip_input_thread(void * arg){
 
             if( lwip_api_netif_is_link_up(netif) <= 0 ){
                 mcu_debug_log_warning(MCU_DEBUG_SOCKET, "%s link is down", netif->hostname);
-                netif_set_link_down(netif);
-                mcu_debug_log_warning(MCU_DEBUG_SOCKET, "%s is now down", netif->hostname);
+                //netif_set_link_down(netif);
+            } else {
+                //netif_set_link_up(netif);
             }
         }
 #endif

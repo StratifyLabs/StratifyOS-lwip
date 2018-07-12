@@ -63,8 +63,6 @@
 
 #define UMAX(a, b)      ((a) > (b) ? (a) : (b))
 
-static struct timeval starttime;
-
 #if !NO_SYS
 
 static struct sys_thread *threads = NULL;
@@ -661,22 +659,8 @@ sys_arch_unprotect(sys_prot_t pval)
 #define HZ 100
 #endif
 
-u32_t
-sys_jiffies(void)
-{
-    struct timeval tv;
-    unsigned long sec;
-    long usec;
-
-    gettimeofday(&tv,NULL);
-    sec = tv.tv_sec - starttime.tv_sec;
-    usec = tv.tv_usec;
-
-    if (sec >= (MAX_JIFFY_OFFSET / HZ))
-        return MAX_JIFFY_OFFSET;
-    usec += 1000000L / HZ - 1;
-    usec /= 1000000L / HZ;
-    return HZ * sec + usec;
+u32_t sys_jiffies(void){
+    return sys_now();
 }
 
 #if PPP_DEBUG

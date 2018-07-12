@@ -34,6 +34,7 @@
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <mcu/debug.h>
 
 /* Prevent having to link sys_arch.c (we don't test the API layers in unit tests) */
 #define NO_SYS                          0
@@ -55,8 +56,21 @@
 #define LWIP_IPV6_DUP_DETECT_ATTEMPTS   0
 #define LWIP_DHCP_CHECK_LINK_UP         1
 
+
 /* Enable DHCP to test it */
 #define LWIP_DHCP                       1
+
+#if defined MCU_DEBUG
+#define LWIP_DEBUG 1
+
+#define TRACE_DEBUG 0x80
+#define SOCKETS_DEBUG 0x80
+#define UDP_DEBUG 0x80
+#define DHCP_DEBUG 0x80
+#define AUTOIP_DEBUG 0x80
+#define LWIP_DBG_MIN_LEVEL 0
+
+#endif
 
 /* Turn off checksum verification of fuzzed data */
 #define CHECKSUM_CHECK_IP               1

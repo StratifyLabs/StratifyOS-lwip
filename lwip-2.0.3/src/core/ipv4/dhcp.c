@@ -726,6 +726,7 @@ dhcp_start(struct netif *netif)
   LWIP_ERROR("netif != NULL", (netif != NULL), return ERR_ARG;);
   LWIP_ERROR("netif is not up, old style port?", netif_is_up(netif), return ERR_ARG;);
   dhcp = netif_dhcp_data(netif);
+  mcu_debug_log_info(MCU_DEBUG_SOCKET, "DHCP Debug %X", DHCP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE);
   LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("dhcp_start(netif=%p) %c%c%"U16_F"\n", (void*)netif, netif->name[0], netif->name[1], (u16_t)netif->num));
 
   /* check MTU of the netif */

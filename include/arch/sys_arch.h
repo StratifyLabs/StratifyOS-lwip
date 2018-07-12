@@ -45,6 +45,8 @@ typedef struct sys_sem * sys_sem_t;
 #define sys_sem_valid(sem) (((sem) != NULL) && (*(sem) != NULL))
 #define sys_sem_set_invalid(sem) do { if((sem) != NULL) { *(sem) = NULL; }}while(0)
 
+
+
 /* let sys.h use binary semaphores for mutexes */
 #define LWIP_COMPAT_MUTEX 0
 typedef pthread_mutex_t sys_mutex_t;
