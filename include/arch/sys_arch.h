@@ -46,15 +46,11 @@ typedef struct sys_sem * sys_sem_t;
 #define sys_sem_set_invalid(sem) do { if((sem) != NULL) { *(sem) = NULL; }}while(0)
 
 /* let sys.h use binary semaphores for mutexes */
-#define LWIP_COMPAT_MUTEX 1
+#define LWIP_COMPAT_MUTEX 0
+typedef pthread_mutex_t sys_mutex_t;
 
 struct sys_mbox;
-typedef struct sys_mbox *sys_mbox_t;
-#define sys_mbox_valid(mbox) (((mbox) != NULL) && (*(mbox) != NULL))
-#define sys_mbox_set_invalid(mbox) do { if((mbox) != NULL) { *(mbox) = NULL; }}while(0)
-
-struct sys_thread;
-typedef struct sys_thread * sys_thread_t;
+typedef struct sys_mbox * sys_mbox_t;
 
 struct sys_thread;
 typedef struct sys_thread * sys_thread_t;

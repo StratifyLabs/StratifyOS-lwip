@@ -3,15 +3,14 @@
 
 #include <sys/socket.h>
 #include <sos/fs/devfs.h>
-#include "lwip/netif.h"
 
-extern const sos_socket_api_t lwip_api;
+#include "lwip/netif.h"
+#include "lwip/sockets.h"
 
 typedef struct MCU_PACK {
     sysfs_shared_config_t device_config; //make this the first member
     u8 hw_addr[6];
     u16 mtu /*! Default value should be 1500 */;
-    const void * netif_device_attr;
     const char * host_name;
     struct netif * network_interface_list;
     u16 network_interface_count;
@@ -26,9 +25,9 @@ typedef struct MCU_PACK {
 typedef struct {
     sysfs_shared_state_t device_state;
     const lwip_api_config_t * config;
-} lwip_api_netif_state_t;
+} lwip_api_state_t;
 
-int lwip_api_startup(const sos_socket_api_t * api);
+int lwip_api_startup(const void * socket_api);
 int lwip_api_deinitialize();
 
 #define LWIP_DECLARE_CONFIG_STATE(name_value, network_interface_count_value, device_filesystem_value, device_name_value, host_name_value, mtu_value, hw_addr_0_value, hw_addr_1_value, hw_addr_2_value, hw_addr_3_value, hw_addr_4_value, hw_addr_5_value) \

@@ -36,6 +36,8 @@
  *
  */
 
+#include <mcu/debug.h>
+
 #include "lwip/opt.h"
 
 #if !NO_SYS /* don't build if not configured for use in lwipopts.h */
@@ -89,7 +91,9 @@ tcpip_thread(void *arg)
   struct tcpip_msg *msg;
   LWIP_UNUSED_ARG(arg);
 
+  mcu_debug_log_info(MCU_DEBUG_SOCKET, "Start TCPIP Thread");
   if (tcpip_init_done != NULL) {
+      mcu_debug_log_info(MCU_DEBUG_SOCKET, "TCPIP Thread Init Done");
     tcpip_init_done(tcpip_init_done_arg);
   }
 
@@ -120,6 +124,12 @@ tcpip_thread(void *arg)
 
 #if !LWIP_TCPIP_CORE_LOCKING_INPUT
     case TCPIP_MSG_INPKT:
+        mcu_debug_log_info(MCU_DEBUG_SOCKET, "got packet %lX %lX %lX %lX %lX",
+                           (u32)msg,
+                           (u32)&msg->msg,
+                           (u32)msg->msg.inp.input_fn,
+                           (u32)msg->msg.inp.netif,
+                           (u32)msg->msg.inp.p);
       LWIP_DEBUGF(TCPIP_DEBUG, ("tcpip_thread: PACKET %p\n", (void *)msg));
       msg->msg.inp.input_fn(msg->msg.inp.p, msg->msg.inp.netif);
       memp_free(MEMP_TCPIP_MSG_INPKT, msg);

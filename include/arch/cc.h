@@ -33,6 +33,7 @@
 #define LWIP_ARCH_CC_H_
 
 #include <mcu/types.h>
+#include <mcu/debug.h>
 /* Include some files for defining library routines */
 #include <string.h>
 #include <sys/time.h>
@@ -58,7 +59,7 @@
 #define SZT_F "u"
 
 /* Compiler hints for packing structures */
-#define PACK_STRUCT_FIELD(x) x __attribute__((packed))
+#define PACK_STRUCT_FIELD(x) x
 #define PACK_STRUCT_STRUCT __attribute__((packed))
 #define PACK_STRUCT_BEGIN
 #define PACK_STRUCT_END
@@ -67,12 +68,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 /* Plaform specific diagnostic output */
-#define LWIP_PLATFORM_DIAG(x)	do {printf x;} while(0)
+#define LWIP_PLATFORM_DIAG(x)	do {mcu_debug_printf x;} while(0)
 
-#define LWIP_PLATFORM_ASSERT(x) do {printf("Assertion \"%s\" failed at line %d in %s\n", \
-                                     x, __LINE__, __FILE__); fflush(NULL); abort();} while(0)
+#define LWIP_PLATFORM_ASSERT(x) do { mcu_debug_printf("Assertion \"%s\" failed at line %d in %s\n", \
+                                     x, __LINE__, __FILE__); } while(0)
 
 #define LWIP_RAND() ((u32_t)rand())
+
+#define lwip_itoa itoa
+
 
 
 

@@ -42,6 +42,7 @@
 #define LWIP_SOCKET                     1
 #define LWIP_COMPAT_MUTEX_ALLOWED       1
 #define MEM_LIBC_MALLOC                 1
+#define MEM_ALIGNMENT                   4
 #define ETH_PAD_SIZE                    2
 #define LWIP_SOCKET_OFFSET			   OPEN_MAX
 
@@ -52,6 +53,7 @@
 #define LWIP_IPV6                       1
 #define IPV6_FRAG_COPYHEADER            1
 #define LWIP_IPV6_DUP_DETECT_ATTEMPTS   0
+#define LWIP_DHCP_CHECK_LINK_UP         1
 
 /* Enable DHCP to test it */
 #define LWIP_DHCP                       1
@@ -73,7 +75,10 @@
 #define TCP_RCV_SCALE                   0
 #define PBUF_POOL_SIZE                  16
 
+#define TCPIP_THREAD_STACKSIZE          2048
+
 /* Minimal changes to opt.h required for etharp unit tests: */
 #define ETHARP_SUPPORT_STATIC_ENTRIES   1
+
 
 #endif /* LWIP_HDR_LWIPOPTS_H__ */
