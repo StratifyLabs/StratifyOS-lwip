@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <sos/fs/devfs.h>
 
+#include "lwip/netdb.h"
 #include "lwip/netif.h"
 #include "lwip/sockets.h"
 
@@ -68,6 +69,11 @@ int lwip_api_deinitialize();
     .select = lwip_select, \
     .ioctl = lwip_ioctl, \
     .fcntl = lwip_fcntl, \
+    .fsync = 0, \
+    .gethostbyname = lwip_gethostbyname, \
+    .gethostbyname_r = lwip_gethostbyname_r, \
+    .freeaddrinfo = lwip_freeaddrinfo, \
+    .getaddrinfo = lwip_getaddrinfo, \
     .config = api_config, \
     .state = api_state }
 

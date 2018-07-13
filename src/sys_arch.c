@@ -120,12 +120,24 @@ void sys_unlock_mbox(struct sys_mbox *mbox){
     pthread_mutex_unlock(&mbox->mutex);
 }
 
+void * sys_arch_malloc(size_t nbytes){
+    return _malloc_r(sos_task_table[0].global_reent, nbytes);
+}
+
+void sys_arch_free(void  * mem){
+    _free_r(sos_task_table[0].global_reent, mem);
+}
+
+void * sys_arch_calloc(size_t n, size_t nbytes){
+    return sys_arch_malloc(n*nbytes);
+}
+
 /*-----------------------------------------------------------------------------------*/
 static struct sys_thread * introduce_thread(pthread_t id)
 {
     struct sys_thread *thread;
 
-    thread = (struct sys_thread *)_malloc_r(sos_task_table[0].global_reent, sizeof(struct sys_thread));
+    thread = (struct sys_thread *)sys_arch_malloc(sizeof(struct sys_thread));
 
     mcu_debug_log_info(MCU_DEBUG_INFO, "%s %d", __FUNCTION__, __LINE__);
     if (thread != NULL) {
@@ -203,7 +215,7 @@ sys_mbox_new(struct sys_mbox **mb, int size)
     struct sys_mbox *mbox;
     LWIP_UNUSED_ARG(size);
 
-    mbox = (struct sys_mbox *)_malloc_r(sos_task_table[0].global_reent, sizeof(struct sys_mbox));
+    mbox = (struct sys_mbox *)sys_arch_malloc(sizeof(struct sys_mbox));
     if (mbox == NULL) {
         return ERR_MEM;
     }
@@ -239,7 +251,7 @@ sys_mbox_free(struct sys_mbox **mb)
 
         mbox->not_empty = mbox->not_full = NULL;
         /*  LWIP_DEBUGF("sys_mbox_free: mbox 0x%lx\n", mbox); */
-        _free_r(sos_task_table[0].global_reent, mbox);
+        sys_arch_free(mbox);
     }
 }
 /*-----------------------------------------------------------------------------------*/
@@ -420,13 +432,13 @@ static struct sys_sem *
 {
     struct sys_sem *sem;
 
-    sem = (struct sys_sem *)_malloc_r(sos_task_table[0].global_reent, (sizeof(struct sys_sem)));
+    sem = (struct sys_sem *)sys_arch_malloc(sizeof(struct sys_sem));
     if (sem != NULL) {
 
 #if 1
-        sem->sem = (sem_t*)_malloc_r(sos_task_table[0].global_reent, sizeof(sem_t));
+        sem->sem = (sem_t*)sys_arch_malloc(sizeof(sem_t));
         if( sem->sem == 0 ){
-            _free_r(sos_task_table[0].global_reent, sem);
+            sys_arch_free(sem);
             return 0;
         }
         //this will be sem_init()
@@ -552,8 +564,8 @@ sys_sem_free_internal(struct sys_sem *sem)
 #if 1
     sem_destroy(sem->sem);
 
-    _free_r(sos_task_table[0].global_reent, sem->sem);
-    _free_r(sos_task_table[0].global_reent, sem);
+    sys_arch_free(sem->sem);
+    sys_arch_free(sem);
 #else
     pthread_cond_destroy(&(sem->cond));
     pthread_mutex_destroy(&(sem->mutex));

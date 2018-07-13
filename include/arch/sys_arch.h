@@ -46,6 +46,15 @@ typedef struct sys_sem * sys_sem_t;
 #define sys_sem_set_invalid(sem) do { if((sem) != NULL) { *(sem) = NULL; }}while(0)
 
 
+#define mem_clib_malloc sys_arch_malloc
+#define mem_clib_free sys_arch_free
+#define mem_clib_calloc sys_arch_calloc
+
+void * sys_arch_malloc(size_t nbytes);
+void sys_arch_free(void  * mem);
+void * sys_arch_calloc(size_t n, size_t nbytes);
+
+
 
 /* let sys.h use binary semaphores for mutexes */
 #define LWIP_COMPAT_MUTEX 0
