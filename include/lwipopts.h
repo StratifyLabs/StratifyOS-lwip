@@ -63,6 +63,7 @@
 #if defined MCU_DEBUG
 #define LWIP_DEBUG 1
 
+#define TCPIP_DEBUG 0x80
 #define TRACE_DEBUG 0x80
 #define SOCKETS_DEBUG 0x80
 #define UDP_DEBUG 0x80
@@ -72,12 +73,17 @@
 
 #endif
 
-/* Turn off checksum verification of fuzzed data */
-#define CHECKSUM_CHECK_IP               1
-#define CHECKSUM_CHECK_UDP              1
-#define CHECKSUM_CHECK_TCP              1
-#define CHECKSUM_CHECK_ICMP             1
-#define CHECKSUM_CHECK_ICMP6            1
+/* Checksum settings */
+#define CHECKSUM_GEN_IP 0
+#define CHECKSUM_GEN_UDP 0
+#define CHECKSUM_GEN_TCP 0
+#define CHECKSUM_GEN_ICMP 0
+#define CHECKSUM_GEN_ICMP6 0
+#define CHECKSUM_CHECK_IP 1
+#define CHECKSUM_CHECK_UDP 1
+#define CHECKSUM_CHECK_TCP 1
+#define CHECKSUM_CHECK_ICMP 1
+#define CHECKSUM_CHECK_ICMP6 1
 
 /* Minimal changes to opt.h required for tcp unit tests: */
 #define MEM_SIZE                        1600

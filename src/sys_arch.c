@@ -186,8 +186,6 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int stacksi
     }
 #endif
 
-    mcu_debug_log_info(MCU_DEBUG_SOCKET, "create thread");
-
     result = pthread_create(&tmp,
                           &attr,
                           (void *(*)(void *))function,
@@ -195,7 +193,6 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int stacksi
 
 
     if (result == 0) {
-        mcu_debug_log_info(MCU_DEBUG_SOCKET, "Intro thread");
         mcu_debug_log_info(MCU_DEBUG_SOCKET, "introduce thread %d", tmp);
         st = introduce_thread(tmp);
     }
@@ -205,7 +202,6 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int stacksi
         abort();
     }
 
-    mcu_debug_log_info(MCU_DEBUG_SOCKET, "Thread has begun");
     return st;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -216,9 +212,7 @@ sys_mbox_new(struct sys_mbox **mb, int size)
     LWIP_UNUSED_ARG(size);
 
     mbox = (struct sys_mbox *)sys_arch_malloc(sizeof(struct sys_mbox));
-    if (mbox == NULL) {
-        return ERR_MEM;
-    }
+    if (mbox == NULL) { return ERR_MEM; }
     mbox->first = mbox->last = 0;
     mbox->not_empty = sys_sem_new_internal(0);
     mbox->not_full = sys_sem_new_internal(0);
@@ -380,7 +374,10 @@ u32_t
 sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, u32_t timeout)
 {
     u32_t time_needed = 0;
-    struct sys_mbox *mbox;
+    struct sys_mbox * mbox;
+    //mcu_debug_log_info(MCU_DEBUG_SOCKET, "%s %d", __FUNCTION__, __LINE__);
+    //usleep(20*1000);
+
     LWIP_ASSERT("invalid mbox", (mb != NULL) && (*mb != NULL));
     mbox = *mb;
 
@@ -427,15 +424,11 @@ sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, u32_t timeout)
     return time_needed;
 }
 /*-----------------------------------------------------------------------------------*/
-static struct sys_sem *
-        sys_sem_new_internal(u8_t count)
-{
+static struct sys_sem * sys_sem_new_internal(u8_t count){
     struct sys_sem *sem;
 
     sem = (struct sys_sem *)sys_arch_malloc(sizeof(struct sys_sem));
     if (sem != NULL) {
-
-#if 1
         sem->sem = (sem_t*)sys_arch_malloc(sizeof(sem_t));
         if( sem->sem == 0 ){
             sys_arch_free(sem);
@@ -443,11 +436,6 @@ static struct sys_sem *
         }
         //this will be sem_init()
         sem_init(sem->sem, 1, count);
-#else
-        sem->c = count;
-        pthread_cond_init(&(sem->cond), NULL);
-        pthread_mutex_init(&(sem->mutex), NULL);
-#endif
     }
     return sem;
 }
@@ -468,8 +456,6 @@ sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
 {
 
     //this will be sem_timedwait()
-
-#if 1
     struct timespec now;
     struct timespec then;
     struct timespec abs_timeout;
@@ -480,7 +466,7 @@ sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
     if( timeout > 0 ){
         u32 seconds = timeout / 1000;
         u32 milliseconds = timeout % 1000;
-        abs_timeout.tv_nsec = now.tv_nsec + milliseconds*1000;
+        abs_timeout.tv_nsec = now.tv_nsec + milliseconds*1000000UL;
         abs_timeout.tv_sec = now.tv_sec + seconds;
 
         if( abs_timeout.tv_nsec > 1000000000UL ){
@@ -500,77 +486,20 @@ sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
     abs_timeout.tv_sec = then.tv_sec - now.tv_sec;
     abs_timeout.tv_nsec = then.tv_nsec - now.tv_nsec;
     return abs_timeout.tv_sec * 1000UL + abs_timeout.tv_nsec / 1000000UL;
-
-#else
-
-    u32_t time_needed = 0;
-    struct sys_sem *sem;
-    LWIP_ASSERT("invalid sem", (s != NULL) && (*s != NULL));
-    sem = *s;
-
-    pthread_mutex_lock(&(sem->mutex));
-    while (sem->c <= 0) {
-        if (timeout > 0) {
-            time_needed = cond_wait(&(sem->cond), &(sem->mutex), timeout);
-
-            if (time_needed == SYS_ARCH_TIMEOUT) {
-                pthread_mutex_unlock(&(sem->mutex));
-                return SYS_ARCH_TIMEOUT;
-            }
-            /*      pthread_mutex_unlock(&(sem->mutex));
-              return time_needed; */
-        } else {
-            cond_wait(&(sem->cond), &(sem->mutex), 0);
-        }
-    }
-    sem->c--;
-    pthread_mutex_unlock(&(sem->mutex));
-    return time_needed;
-#endif
 }
 /*-----------------------------------------------------------------------------------*/
 void
-sys_sem_signal(struct sys_sem **s)
-{
-
-    //this will be sem_post()
-
-#if 1
+sys_sem_signal(struct sys_sem **s){
     struct sys_sem * sem = *s;
     sem_post(sem->sem);
-#else
-
-    struct sys_sem *sem;
-    LWIP_ASSERT("invalid sem", (s != NULL) && (*s != NULL));
-    sem = *s;
-
-    pthread_mutex_lock(&(sem->mutex));
-    sem->c++;
-
-    if (sem->c > 1) {
-        sem->c = 1;
-    }
-
-    pthread_cond_broadcast(&(sem->cond));
-    pthread_mutex_unlock(&(sem->mutex));
-#endif
 }
 /*-----------------------------------------------------------------------------------*/
 static void
-sys_sem_free_internal(struct sys_sem *sem)
-{
-    //this will be sem_destroy()
-
-#if 1
+sys_sem_free_internal(struct sys_sem *sem){
     sem_destroy(sem->sem);
 
     sys_arch_free(sem->sem);
     sys_arch_free(sem);
-#else
-    pthread_cond_destroy(&(sem->cond));
-    pthread_mutex_destroy(&(sem->mutex));
-    free(sem);
-#endif
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -584,22 +513,9 @@ sys_sem_free(struct sys_sem **sem)
 #endif /* !NO_SYS */
 /*-----------------------------------------------------------------------------------*/
 u32_t sys_now(void){
-
-    //this needs to be based on CLOCK_REALTIME
-#if 1
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
     return now.tv_sec * 1000 + now.tv_nsec / 1000000UL;
-#else
-    struct timeval tv;
-    u32_t sec, usec, msec;
-    gettimeofday(&tv, NULL);
-
-    sec = (u32_t)(tv.tv_sec - starttime.tv_sec);
-    usec = (u32_t)(tv.tv_usec - starttime.tv_usec);
-    msec = sec * 1000 + usec / 1000;
-    return msec;
-#endif
 }
 /*-----------------------------------------------------------------------------------*/
 void sys_init(void){

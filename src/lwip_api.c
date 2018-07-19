@@ -4,6 +4,9 @@
 #include <mcu/debug.h>
 #include <errno.h>
 
+#include <cortexm/cortexm.h>
+#include <cortexm/task.h>
+
 #include "lwip/opt.h"
 #include "lwip_api.h"
 #include "lwip/sockets.h"
@@ -214,10 +217,21 @@ err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p){
        time. The size of the data in each pbuf is kept in the ->len
        variable. */
         //send data from(q->payload, q->len);
+#if 0
+        for(int i = 0; i < q->len; i++){
+            mcu_debug_printf("0x%X ", ((u8*)q->payload)[i]);
+        }
+        mcu_debug_printf("\n");
+#endif
+
+
         if( sysfs_shared_write(&config->device_config, 0, q->payload, q->len) != q->len ){
             return ERR_IF;
         }
     }
+
+    mcu_debug_log_info(MCU_DEBUG_SOCKET, "sent:%d", p->len);
+
 
     MIB2_STATS_NETIF_ADD(netif, ifoutoctets, p->tot_len);
     if (((u8_t*)p->payload)[0] & 1) {
@@ -235,6 +249,15 @@ err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p){
     return ERR_OK;
 }
 
+void root_set_tcpip_input_thread_as_root(void * args){
+    task_assert_root(2);
+}
+
+void tcpip_init_done(void * args){
+    usleep(800*1000);
+    mcu_debug_log_info(MCU_DEBUG_SOCKET, "TCPIP INIT DONE");
+}
+
 int lwip_api_startup(const void * socket_api){
 
     const lwip_api_config_t * config = ((const sos_socket_api_t*)socket_api)->config;
@@ -249,7 +272,10 @@ int lwip_api_startup(const void * socket_api){
     } else {
 
         mcu_debug_log_info(MCU_DEBUG_SOCKET, "TCPIP Init");
-        tcpip_init(0, 0);
+        tcpip_init(tcpip_init_done, 0);
+
+        //cortexm_svcall(root_set_tcpip_input_thread_as_root, 0);
+
 
         usleep(100*1000);
 
@@ -304,6 +330,8 @@ int lwip_api_add_netif(struct netif * netif, void * state){
               state,
               lwip_api_netif_init,
               tcpip_input);
+
+
 
     //create a thread to monitor the new interface - for up/down, etc
     sys_thread_new("netif", lwip_input_thread, netif, 4096, 0);
