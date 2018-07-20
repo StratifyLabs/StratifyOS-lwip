@@ -8,7 +8,7 @@
 #include "lwip/netif.h"
 #include "lwip/sockets.h"
 
-typedef struct MCU_PACK {
+typedef struct {
     sysfs_shared_config_t device_config; //make this the first member
     u8 hw_addr[6];
     u16 mtu /*! Default value should be 1500 */;
@@ -18,7 +18,7 @@ typedef struct MCU_PACK {
     u16 max_packet_size;
 } lwip_api_config_t;
 
-typedef struct MCU_PACK {
+typedef struct {
     err_t (*init_function)(struct netif *);
     err_t (*input_function)(struct pbuf *, struct netif *);
 } lwip_api_netif_t;

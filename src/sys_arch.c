@@ -155,9 +155,12 @@ static struct sys_thread * introduce_thread(pthread_t id)
     return thread;
 }
 /*-----------------------------------------------------------------------------------*/
-sys_thread_t
-sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int stacksize, int prio)
-{
+sys_thread_t sys_thread_new(
+        const char *name,
+        lwip_thread_fn function,
+        void *arg, int stacksize,
+        int prio
+        ){
     int result;
     pthread_t tmp;
     struct sys_thread *st = NULL;
@@ -187,9 +190,9 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int stacksi
 #endif
 
     result = pthread_create(&tmp,
-                          &attr,
-                          (void *(*)(void *))function,
-                          arg);
+                            &attr,
+                            (void *(*)(void *))function,
+                            arg);
 
 
     if (result == 0) {
@@ -205,9 +208,7 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int stacksi
     return st;
 }
 /*-----------------------------------------------------------------------------------*/
-err_t
-sys_mbox_new(struct sys_mbox **mb, int size)
-{
+err_t sys_mbox_new(struct sys_mbox **mb, int size){
     struct sys_mbox *mbox;
     LWIP_UNUSED_ARG(size);
 
@@ -451,9 +452,8 @@ err_t sys_sem_new(struct sys_sem **sem, u8_t count){
 
 
 /*-----------------------------------------------------------------------------------*/
-u32_t
-sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
-{
+u32_t sys_arch_sem_wait(struct sys_sem **s, u32_t timeout){
+
 
     //this will be sem_timedwait()
     struct timespec now;
@@ -479,7 +479,9 @@ sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
             return SYS_ARCH_TIMEOUT;
         }
     } else {
-        sem_wait(sem->sem);
+        if( sem_wait(sem->sem) < 0 ){
+            mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to wait semaphore %d", errno);
+        }
     }
 
     clock_gettime(CLOCK_REALTIME, &then);
@@ -488,14 +490,14 @@ sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
     return abs_timeout.tv_sec * 1000UL + abs_timeout.tv_nsec / 1000000UL;
 }
 /*-----------------------------------------------------------------------------------*/
-void
-sys_sem_signal(struct sys_sem **s){
+void sys_sem_signal(struct sys_sem **s){
     struct sys_sem * sem = *s;
-    sem_post(sem->sem);
+    if( sem_post(sem->sem) < 0 ){
+        mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to post semaphore %d", errno);
+    }
 }
 /*-----------------------------------------------------------------------------------*/
-static void
-sys_sem_free_internal(struct sys_sem *sem){
+static void sys_sem_free_internal(struct sys_sem *sem){
     sem_destroy(sem->sem);
 
     sys_arch_free(sem->sem);
