@@ -376,8 +376,6 @@ sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, u32_t timeout)
 {
     u32_t time_needed = 0;
     struct sys_mbox * mbox;
-    //mcu_debug_log_info(MCU_DEBUG_SOCKET, "%s %d", __FUNCTION__, __LINE__);
-    //usleep(20*1000);
 
     LWIP_ASSERT("invalid mbox", (mb != NULL) && (*mb != NULL));
     mbox = *mb;
@@ -436,6 +434,7 @@ static struct sys_sem * sys_sem_new_internal(u8_t count){
             return 0;
         }
         //this will be sem_init()
+        mcu_debug_log_info(MCU_DEBUG_SOCKET, "SEM Init %p %p", sem, sem->sem);
         sem_init(sem->sem, 1, count);
     }
     return sem;
@@ -498,15 +497,16 @@ void sys_sem_signal(struct sys_sem **s){
 }
 /*-----------------------------------------------------------------------------------*/
 static void sys_sem_free_internal(struct sys_sem *sem){
-    sem_destroy(sem->sem);
-
-    sys_arch_free(sem->sem);
-    sys_arch_free(sem);
+    if( sem && sem->sem ){
+        sem_destroy(sem->sem);
+        sys_arch_free(sem->sem);
+        sys_arch_free(sem);
+    } else {
+        mcu_debug_log_warning(MCU_DEBUG_SOCKET, "Freeing invalid sem");
+    }
 }
 /*-----------------------------------------------------------------------------------*/
-void
-sys_sem_free(struct sys_sem **sem)
-{
+void sys_sem_free(struct sys_sem **sem){
     if ((sem != NULL) && (*sem != SYS_SEM_NULL)) {
         SYS_STATS_DEC(sem.used);
         sys_sem_free_internal(*sem);
@@ -642,5 +642,5 @@ int sys_mbox_valid(sys_mbox_t *mbox){
 }
 
 void sys_mbox_set_invalid(sys_mbox_t *mbox){
-    sys_mbox_free(mbox);
+    *mbox = 0;
 }
