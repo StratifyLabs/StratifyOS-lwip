@@ -54,6 +54,8 @@ void * sys_arch_malloc(size_t nbytes);
 void sys_arch_free(void  * mem);
 void * sys_arch_calloc(size_t n, size_t nbytes);
 
+pthread_t sys_arch_get_first_thread();
+
 
 
 /* let sys.h use binary semaphores for mutexes */
@@ -63,8 +65,7 @@ typedef pthread_mutex_t sys_mutex_t;
 struct sys_mbox;
 typedef struct sys_mbox * sys_mbox_t;
 
-struct sys_thread;
-typedef struct sys_thread * sys_thread_t;
+typedef pthread_t sys_thread_t;
 
 
 #endif /* LWIP_ARCH_SYS_ARCH_H_ */

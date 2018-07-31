@@ -251,7 +251,8 @@ err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p){
 
 void root_set_tcpip_input_thread_as_root(void * args){
     MCU_UNUSED_ARGUMENT(args);
-    task_assert_root(2);
+    pthread_t * task = (pthread_t*)args;
+    task_assert_root(*task);
 }
 
 void tcpip_init_done(void * args){
@@ -278,7 +279,10 @@ int lwip_api_startup(const void * socket_api){
     mcu_debug_log_info(MCU_DEBUG_SOCKET, "TCPIP Init");
     tcpip_init(tcpip_init_done, 0);
 
-    cortexm_svcall(root_set_tcpip_input_thread_as_root, 0);
+    //figure out which thread was just created
+    pthread_t tcpip_thread = sys_arch_get_first_thread();
+
+    cortexm_svcall(root_set_tcpip_input_thread_as_root, &tcpip_thread);
 
 
     usleep(100*1000);

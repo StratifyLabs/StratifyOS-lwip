@@ -65,7 +65,7 @@
 
 #if !NO_SYS
 
-static struct sys_thread *threads = NULL;
+static pthread_t m_first_thread = 0;
 static pthread_mutex_t threads_mutex;
 
 struct sys_mbox_msg {
@@ -86,11 +86,6 @@ struct sys_mbox {
 
 struct sys_sem {
     sem_t * sem;
-};
-
-struct sys_thread {
-    struct sys_thread *next;
-    pthread_t pthread;
 };
 
 #if SYS_LIGHTWEIGHT_PROT
@@ -132,28 +127,10 @@ void * sys_arch_calloc(size_t n, size_t nbytes){
     return sys_arch_malloc(n*nbytes);
 }
 
-/*-----------------------------------------------------------------------------------*/
-static struct sys_thread * introduce_thread(pthread_t id)
-{
-    struct sys_thread *thread;
-
-    thread = (struct sys_thread *)sys_arch_malloc(sizeof(struct sys_thread));
-
-    mcu_debug_log_info(MCU_DEBUG_INFO, "%s %d", __FUNCTION__, __LINE__);
-    if (thread != NULL) {
-        mcu_debug_log_info(MCU_DEBUG_INFO, "%s %d", __FUNCTION__, __LINE__);
-        pthread_mutex_lock(&threads_mutex);
-        mcu_debug_log_info(MCU_DEBUG_INFO, "%s %d", __FUNCTION__, __LINE__);
-        thread->next = threads;
-        thread->pthread = id;
-        threads = thread;
-        mcu_debug_log_info(MCU_DEBUG_INFO, "%s %d", __FUNCTION__, __LINE__);
-        pthread_mutex_unlock(&threads_mutex);
-        mcu_debug_log_info(MCU_DEBUG_INFO, "%s %d", __FUNCTION__, __LINE__);
-    }
-
-    return thread;
+pthread_t sys_arch_get_first_thread(){
+    return m_first_thread;
 }
+
 /*-----------------------------------------------------------------------------------*/
 sys_thread_t sys_thread_new(
         const char *name,
@@ -163,7 +140,6 @@ sys_thread_t sys_thread_new(
         ){
     int result;
     pthread_t tmp;
-    struct sys_thread *st = NULL;
     LWIP_UNUSED_ARG(name);
     LWIP_UNUSED_ARG(stacksize);
     LWIP_UNUSED_ARG(prio);
@@ -194,18 +170,16 @@ sys_thread_t sys_thread_new(
                             (void *(*)(void *))function,
                             arg);
 
-
-    if (result == 0) {
-        mcu_debug_log_info(MCU_DEBUG_SOCKET, "introduce thread %d", tmp);
-        st = introduce_thread(tmp);
-    }
-
-    if (NULL == st) {
-        LWIP_DEBUGF(SYS_DEBUG, ("sys_thread_new: pthread_create %d, st = 0x%lx", result, (unsigned long)st));
+    if( result < 0 ){
+        mcu_debug_log_info(MCU_DEBUG_SOCKET, "Failed to create thread");
         abort();
     }
 
-    return st;
+    if( m_first_thread == 0 ){
+        m_first_thread = tmp;
+    }
+
+    return tmp;
 }
 /*-----------------------------------------------------------------------------------*/
 err_t sys_mbox_new(struct sys_mbox **mb, int size){
