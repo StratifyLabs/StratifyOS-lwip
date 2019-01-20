@@ -354,7 +354,7 @@ get_socket(int s)
   s -= LWIP_SOCKET_OFFSET;
 
   if ((s < 0) || (s >= NUM_SOCKETS)) {
-    LWIP_DEBUGF(SOCKETS_DEBUG, ("get_socket(%d): invalid\n", s + LWIP_SOCKET_OFFSET));
+	 LWIP_DEBUGF(SOCKETS_DEBUG, ("get_socket(0x%X): invalid\n", s + LWIP_SOCKET_OFFSET));
     set_errno(EBADF);
     return NULL;
   }
@@ -362,7 +362,7 @@ get_socket(int s)
   sock = &sockets[s];
 
   if (!sock->conn) {
-    LWIP_DEBUGF(SOCKETS_DEBUG, ("get_socket(%d): not active\n", s + LWIP_SOCKET_OFFSET));
+	 LWIP_DEBUGF(SOCKETS_DEBUG, ("get_socket(0x%X): not active\n", s + LWIP_SOCKET_OFFSET));
     set_errno(EBADF);
     return NULL;
   }
@@ -560,6 +560,7 @@ lwip_bind(int s, const struct sockaddr *name, socklen_t namelen)
   ip_addr_t local_addr;
   u16_t local_port;
   err_t err;
+  mcu_debug_printf("%s():%d\n", __FUNCTION__, __LINE__);
 
   sock = get_socket(s);
   if (!sock) {
@@ -646,6 +647,7 @@ lwip_connect(int s, const struct sockaddr *name, socklen_t namelen)
   struct lwip_sock *sock;
   err_t err;
 
+  mcu_debug_printf("%s():%d\n", __FUNCTION__, __LINE__);
   sock = get_socket(s);
   if (!sock) {
     return -1;
@@ -973,6 +975,7 @@ lwip_sendmsg(int s, const struct msghdr *msg, int flags)
   int size = 0;
   err_t err = ERR_OK;
 
+  mcu_debug_printf("%s():%d\n", __FUNCTION__, __LINE__);
   sock = get_socket(s);
   if (!sock) {
     return -1;
@@ -1128,6 +1131,7 @@ lwip_sendto(int s, const void *data, size_t size, int flags,
   u16_t remote_port;
   struct netbuf buf;
 
+  mcu_debug_printf("%s():%d\n", __FUNCTION__, __LINE__);
   sock = get_socket(s);
   if (!sock) {
     return -1;
@@ -1737,6 +1741,7 @@ lwip_getaddrname(int s, struct sockaddr *name, socklen_t *namelen, u8_t local)
   u16_t port;
   err_t err;
 
+  mcu_debug_printf("%s():%d\n", __FUNCTION__, __LINE__);
   sock = get_socket(s);
   if (!sock) {
     return -1;
@@ -2195,6 +2200,7 @@ int
 lwip_setsockopt(int s, int level, int optname, const void *optval, socklen_t optlen)
 {
   u8_t err = 0;
+  mcu_debug_printf("%s():%d\n", __FUNCTION__, __LINE__);
   struct lwip_sock *sock = get_socket(s);
 #if !LWIP_TCPIP_CORE_LOCKING
   LWIP_SETGETSOCKOPT_DATA_VAR_DECLARE(data);
@@ -2614,6 +2620,7 @@ lwip_setsockopt_impl(int s, int level, int optname, const void *optval, socklen_
 int
 lwip_ioctl(int s, long cmd, void *argp)
 {
+	mcu_debug_printf("%s():%d (0x%X)\n", __FUNCTION__, __LINE__, cmd);
   struct lwip_sock *sock = get_socket(s);
   u8_t val;
 #if LWIP_SO_RCVBUF
@@ -2711,6 +2718,7 @@ lwip_ioctl(int s, long cmd, void *argp)
 int
 lwip_fcntl(int s, int cmd, int val)
 {
+	mcu_debug_printf("%s():%d\n", __FUNCTION__, __LINE__);
   struct lwip_sock *sock = get_socket(s);
   int ret = -1;
 

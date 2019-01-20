@@ -363,6 +363,7 @@ lwip_getaddrinfo(const char *nodename, const char *servname,
     total_size <= NETDB_ELEM_SIZE);
   ai = (struct addrinfo *)memp_malloc(MEMP_NETDB);
   if (ai == NULL) {
+	  mcu_debug_printf("FAILED TO MEMP_MALLOC %d\n", errno);
     return EAI_MEMORY;
   }
   memset(ai, 0, total_size);

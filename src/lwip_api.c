@@ -380,3 +380,13 @@ void lwip_input_thread(void * arg){
     }
 
 }
+
+in_addr_t lwip_inet_addr(const char * cp){ return ipaddr_addr(cp); }
+char * lwip_inet_ntoa(struct in_addr addr){ return ip4addr_ntoa((const ip4_addr_t*)&(addr)); }
+const char * lwip_inet_ntop(int af, const void * src, char * dst, socklen_t size){
+	return (((af) == AF_INET6) ? ip6addr_ntoa_r((const ip6_addr_t*)(src),(dst),(size))
+	 : (((af) == AF_INET) ? ip4addr_ntoa_r((const ip4_addr_t*)(src),(dst),(size)) : NULL));
+}
+int lwip_inet_pton(int af, const char * src, void * dst){
+	return (((af) == AF_INET6) ? ip6addr_aton((src),(ip6_addr_t*)(dst)) : 0);
+}

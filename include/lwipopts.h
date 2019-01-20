@@ -43,6 +43,7 @@
 #define LWIP_SOCKET                     1
 #define LWIP_COMPAT_MUTEX_ALLOWED       1
 #define MEM_LIBC_MALLOC                 1
+#define MEMP_MEM_MALLOC                 1
 #define MEM_ALIGNMENT                   4
 #define ETH_PAD_SIZE                    2
 #define LWIP_SOCKET_OFFSET			   OPEN_MAX
@@ -55,6 +56,7 @@
 #define IPV6_FRAG_COPYHEADER            1
 #define LWIP_IPV6_DUP_DETECT_ATTEMPTS   0
 #define LWIP_DHCP_CHECK_LINK_UP         1
+#define LWIP_DONT_PROVIDE_BYTEORDER_FUNCTIONS 1
 
 
 /* Enable DHCP to test it */
@@ -64,18 +66,18 @@
 #define LWIP_DEBUG 1
 
 //#define ETHARP_DEBUG 0x80
-#define TCPIP_DEBUG 0x80
-#define TCP_DEBUG 0x80
-#define TCP_INPUT_DEBUG 0x80
+//#define TCPIP_DEBUG 0x80
+//#define TCP_DEBUG 0x80
+//#define TCP_INPUT_DEBUG 0x80
 #define TRACE_DEBUG 0x80
 #define SOCKETS_DEBUG 0x80
-#define UDP_DEBUG 0x80
-#define DHCP_DEBUG 0x80
-#define AUTOIP_DEBUG 0x80
+//#define UDP_DEBUG 0x80
+//#define DHCP_DEBUG 0x80
+//#define AUTOIP_DEBUG 0x80
 #define API_LIB_DEBUG 0x80
 #define API_MSG_DEBUG 0x80
 //#define NETIF_DEBUG 0x80
-#define IP_DEBUG 0x80
+//#define IP_DEBUG 0x80
 #define TCP_CWND_DEBUG 0x80
 #define SOCKETS_DEBUG 0x80
 //#define PBUF_DEBUG 0x80
