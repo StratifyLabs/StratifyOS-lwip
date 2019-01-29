@@ -22,7 +22,7 @@ endif()
 set(SOS_LIB_NAME lwip)
 project(${SOS_LIB_NAME} CXX C)
 
-set(LWIP_NAME lwip-2.0.3)
+set(LWIP_NAME lwip-2.1.2)
 
 install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY ${LWIP_NAME}/src/include/ DESTINATION include)

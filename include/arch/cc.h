@@ -75,7 +75,7 @@
 
 #define LWIP_RAND() ((u32_t)rand())
 
-#define lwip_itoa itoa
+#define lwip_itoa(result, bufsize, number) snprintf(result, bufsize, "%d", number)
 
 
 

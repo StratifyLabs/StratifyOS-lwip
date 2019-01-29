@@ -69,17 +69,16 @@
 //#define TCPIP_DEBUG 0x80
 //#define TCP_DEBUG 0x80
 //#define TCP_INPUT_DEBUG 0x80
-#define TRACE_DEBUG 0x80
-#define SOCKETS_DEBUG 0x80
+//#define TRACE_DEBUG 0x80
+//#define SOCKETS_DEBUG 0x80
 //#define UDP_DEBUG 0x80
 //#define DHCP_DEBUG 0x80
 //#define AUTOIP_DEBUG 0x80
-#define API_LIB_DEBUG 0x80
-#define API_MSG_DEBUG 0x80
+//#define API_LIB_DEBUG 0x80
+//#define API_MSG_DEBUG 0x80
 //#define NETIF_DEBUG 0x80
 //#define IP_DEBUG 0x80
-#define TCP_CWND_DEBUG 0x80
-#define SOCKETS_DEBUG 0x80
+//#define TCP_CWND_DEBUG 0x80
 //#define PBUF_DEBUG 0x80
 #define LWIP_DBG_MIN_LEVEL 0
 
