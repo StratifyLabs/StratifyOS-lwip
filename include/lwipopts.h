@@ -58,6 +58,11 @@
 #define LWIP_DHCP_CHECK_LINK_UP         1
 #define LWIP_DONT_PROVIDE_BYTEORDER_FUNCTIONS 1
 
+#define LWIP_SO_RCVTIMEO 1
+#define LWIP_SO_SNDTIMEO 1
+#define LWIP_SO_RCVBUF 1
+#define LWIP_MPU_COMPATIBLE 1
+
 
 /* Enable DHCP to test it */
 #define LWIP_DHCP                       1
@@ -66,11 +71,12 @@
 #define LWIP_DEBUG 1
 
 //#define ETHARP_DEBUG 0x80
-//#define TCPIP_DEBUG 0x80
+#define TCPIP_DEBUG 0x80
+//#define DNS_DEBUG 0x80
 //#define TCP_DEBUG 0x80
 //#define TCP_INPUT_DEBUG 0x80
 //#define TRACE_DEBUG 0x80
-//#define SOCKETS_DEBUG 0x80
+#define SOCKETS_DEBUG 0x80
 //#define UDP_DEBUG 0x80
 //#define DHCP_DEBUG 0x80
 //#define AUTOIP_DEBUG 0x80
@@ -100,8 +106,8 @@
 #define MEM_SIZE                        1600
 #define TCP_SND_QUEUELEN                40
 #define MEMP_NUM_TCP_SEG                TCP_SND_QUEUELEN
-#define TCP_SND_BUF                     (12 * TCP_MSS)
-#define TCP_WND                         (10 * TCP_MSS)
+#define TCP_SND_BUF                     (2 * TCP_MSS)
+#define TCP_WND                         (2 * TCP_MSS)
 #define LWIP_WND_SCALE                  1
 #define TCP_RCV_SCALE                   0
 #define PBUF_POOL_SIZE                  16

@@ -134,7 +134,6 @@ err_t lwip_api_netif_input(struct netif *netif){
 	/* Obtain the size of the packet and put it into the "len"
 	  variable. */
 	//len = ioctl(netif_dev->fd, I_NETIF_LEN);
-
 	len = sysfs_shared_read(&config->device_config, 0, packet_buffer, config->max_packet_size);
 	if( len <= 0 ){
 		return ERR_IF;
@@ -223,11 +222,12 @@ err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p){
 
 	//initiate transfer();
 
+	mcu_debug_log_info(MCU_DEBUG_SOCKET, "write interface (%d, %p)", p->tot_len, p);
+
 #if ETH_PAD_SIZE
 	pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
 #endif
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "write interface");
 
 	for (q = p; q != NULL; q = q->next) {
 		/* Send the data from the pbuf to the interface, one pbuf at a
@@ -236,7 +236,7 @@ err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p){
 		//send data from(q->payload, q->len);
 #if 0
 		for(int i = 0; i < q->len; i++){
-			mcu_debug_printf("0x%X ", ((u8*)q->payload)[i]);
+			mcu_debug_printf("%d:0x%X ", i, ((u8*)q->payload)[i]);
 		}
 		mcu_debug_printf("\n");
 #endif
@@ -246,9 +246,9 @@ err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p){
 			mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to write (%d,%d)\n", result, errno);
 			return ERR_IF;
 		}
+		mcu_debug_log_info(MCU_DEBUG_SOCKET, "sent:%d", result);
 	}
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "sent:%d", p->len);
 
 
 	MIB2_STATS_NETIF_ADD(netif, ifoutoctets, p->tot_len);
@@ -267,11 +267,6 @@ err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p){
 	return ERR_OK;
 }
 
-void root_set_tcpip_input_thread_as_root(void * args){
-	MCU_UNUSED_ARGUMENT(args);
-	pthread_t * task = (pthread_t*)args;
-	task_assert_root(*task);
-}
 
 void tcpip_init_done(void * args){
 	MCU_UNUSED_ARGUMENT(args);
@@ -296,12 +291,6 @@ int lwip_api_startup(const void * socket_api){
 
 	mcu_debug_log_info(MCU_DEBUG_SOCKET, "TCPIP Init");
 	tcpip_init(tcpip_init_done, 0);
-
-	//figure out which thread was just created
-	pthread_t tcpip_thread = sys_arch_get_first_thread();
-
-	cortexm_svcall(root_set_tcpip_input_thread_as_root, &tcpip_thread);
-
 
 	usleep(100*1000);
 
@@ -403,7 +392,7 @@ void lwip_input_thread(void * arg){
 		}
 #endif
 		if( input_result != ERR_OK ){
-			usleep(100*1000); //wait a bit before checking for a frame again
+			usleep(10*1000); //wait a bit before checking for a frame again
 		}
 	}
 
