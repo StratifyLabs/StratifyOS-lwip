@@ -495,7 +495,7 @@ u32_t sys_now(void){
 }
 /*-----------------------------------------------------------------------------------*/
 void sys_init(void){
-    mcu_debug_log_info(MCU_DEBUG_SOCKET, "Sys Init");
+	 mcu_debug_log_info(MCU_DEBUG_SOCKET, "Sys Init %p", &threads_mutex);
     initialize_mutex(&threads_mutex);
 }
 /*-----------------------------------------------------------------------------------*/

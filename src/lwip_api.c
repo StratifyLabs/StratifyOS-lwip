@@ -127,14 +127,13 @@ err_t lwip_api_netif_input(struct netif *netif){
 	struct pbuf *p;
 	int len;
 
-	u8 packet_buffer[config->max_packet_size];
 	config = state->config;
 	u16 offset = 0;
 
 	/* Obtain the size of the packet and put it into the "len"
 	  variable. */
 	//len = ioctl(netif_dev->fd, I_NETIF_LEN);
-	len = sysfs_shared_read(&config->device_config, 0, packet_buffer, config->max_packet_size);
+	len = sysfs_shared_read(&config->device_config, 0, config->packet_buffer, config->max_packet_size);
 	if( len <= 0 ){
 		return ERR_IF;
 	}
@@ -170,7 +169,7 @@ err_t lwip_api_netif_input(struct netif *netif){
 		 */
 
 			//scatter the packet into the pbuf
-			memcpy(q->payload, packet_buffer + offset, q->len);
+			memcpy(q->payload, config->packet_buffer + offset, q->len);
 			offset += q->len;
 
 		}
@@ -236,7 +235,10 @@ err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p){
 		//send data from(q->payload, q->len);
 #if 0
 		for(int i = 0; i < q->len; i++){
-			mcu_debug_printf("%d:0x%X ", i, ((u8*)q->payload)[i]);
+			if( i % 16 == 0 ){
+				mcu_debug_printf("\n%p 0x%04X:", i, q->payload);
+			}
+			mcu_debug_printf("%02X ", ((u8*)q->payload)[i]);
 		}
 		mcu_debug_printf("\n");
 #endif
@@ -321,6 +323,8 @@ int lwip_api_startup(const void * socket_api){
 }
 
 int lwip_api_deinitialize(){
+	//stop the input thread
+
 	return 0;
 }
 
@@ -345,7 +349,7 @@ int lwip_api_add_netif(struct netif * netif, void * state){
 
 
 	//create a thread to monitor the new interface - for up/down, etc
-	sys_thread_new("netif", lwip_input_thread, netif, 4096, 0);
+	sys_thread_new("netif", lwip_input_thread, netif, 1024*2, 0);
 
 
 	mcu_debug_log_info(MCU_DEBUG_SOCKET, "Added netif %s", netif->hostname);

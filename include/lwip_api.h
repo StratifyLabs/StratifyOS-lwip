@@ -16,6 +16,7 @@ typedef struct {
 	struct netif * network_interface_list;
 	u16 network_interface_count;
 	u16 max_packet_size;
+	u8 * packet_buffer;
 } lwip_api_config_t;
 
 typedef struct {
@@ -35,13 +36,15 @@ char * lwip_inet_ntoa(struct in_addr addr);
 const char * lwip_inet_ntop(int af, const void * src, char * dst, socklen_t size);
 int lwip_inet_pton(int af, const char * src, void * dst);
 
-#define LWIP_DECLARE_CONFIG_STATE(name_value, network_interface_count_value, device_filesystem_value, device_name_value, host_name_value, mtu_value, hw_addr_0_value, hw_addr_1_value, hw_addr_2_value, hw_addr_3_value, hw_addr_4_value, hw_addr_5_value) \
+#define LWIP_DECLARE_CONFIG_STATE(name_value, network_interface_count_value, device_filesystem_value, device_name_value, host_name_value, mtu_value, max_packet_size_value, hw_addr_0_value, hw_addr_1_value, hw_addr_2_value, hw_addr_3_value, hw_addr_4_value, hw_addr_5_value) \
 	lwip_api_netif_state_t name_value##_state; \
 	struct netif name_value##_network_interface_list[network_interface_count_value]; \
+	u8 name_value##_packet_buffer[max_packet_size_value]; \
 	lwip_api_config_t name_value##_config = { \
 	.device_config.devfs = device_filesystem_value, .device_config.name = device_name_value, .device_config.state = name_value##_state, \
 	.hw_addr[0] = hw_addr_0_value, .hw_addr[1] = hw_addr_1_value, .hw_addr[2] = hw_addr_2_value, .hw_addr[3] = hw_addr_3_value, .hw_addr[4] = hw_addr_4_value, .hw_addr[5] = hw_addr_5_value, \
 	.mtu = mtu_value, \
+	.max_packet_size = max_packet_size_value, \
 	.netif_device_attr = netif_device_attr_value, \
 	.host_name = host_name_value, \
 	.network_interface_list = name_value##_network_interface_list, \

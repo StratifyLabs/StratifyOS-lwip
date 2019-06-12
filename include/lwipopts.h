@@ -44,8 +44,9 @@
 #define LWIP_COMPAT_MUTEX_ALLOWED       1
 #define MEM_LIBC_MALLOC                 1
 #define MEMP_MEM_MALLOC                 1
+#define MEMP_OVERFLOW_CHECK             2
 #define MEM_ALIGNMENT                   4
-#define ETH_PAD_SIZE                    2
+#define ETH_PAD_SIZE                    0
 #define LWIP_SOCKET_OFFSET			   OPEN_MAX
 
 #define LWIP_POSIX_SOCKETS_IO_NAMES     0
@@ -71,7 +72,7 @@
 #define LWIP_DEBUG 1
 
 //#define ETHARP_DEBUG 0x80
-#define TCPIP_DEBUG 0x80
+//#define TCPIP_DEBUG 0x80
 //#define DNS_DEBUG 0x80
 //#define TCP_DEBUG 0x80
 //#define TCP_INPUT_DEBUG 0x80
@@ -102,12 +103,13 @@
 #define CHECKSUM_CHECK_ICMP 1
 #define CHECKSUM_CHECK_ICMP6 1
 
-/* Minimal changes to opt.h required for tcp unit tests: */
-#define MEM_SIZE                        1600
-#define TCP_SND_QUEUELEN                40
-#define MEMP_NUM_TCP_SEG                TCP_SND_QUEUELEN
-#define TCP_SND_BUF                     (2 * TCP_MSS)
+#define MEM_SIZE                        32768
+#define MEMP_NUM_TCP_SEG                8
+#define TCP_MSS                         1460
 #define TCP_WND                         (2 * TCP_MSS)
+#define TCP_SND_BUF                     (2 * TCP_MSS)
+#define TCP_SND_QUEUELEN                ((4 * (TCP_SND_BUF) + (TCP_MSS - 1))/(TCP_MSS))
+#define TCP_OVERSIZE                    TCP_MSS
 #define LWIP_WND_SCALE                  1
 #define TCP_RCV_SCALE                   0
 #define PBUF_POOL_SIZE                  16
