@@ -131,7 +131,7 @@ err_t lwip_api_netif_input(struct netif *netif){
 	u16 offset = 0;
 
 	/* Obtain the size of the packet and put it into the "len"
-	  variable. */
+		variable. */
 	//len = ioctl(netif_dev->fd, I_NETIF_LEN);
 	len = sysfs_shared_read(&config->device_config, 0, config->packet_buffer, config->max_packet_size);
 	if( len <= 0 ){
@@ -157,7 +157,7 @@ err_t lwip_api_netif_input(struct netif *netif){
 
 
 		/* We iterate over the pbuf chain until we have read the entire
-	  * packet into the pbuf. */
+		* packet into the pbuf. */
 		for (q = p; q != NULL; q = q->next) {
 			/* Read enough bytes to fill this pbuf in the chain. The
 		 * available data in the pbuf is given by the q->len
@@ -289,14 +289,13 @@ int lwip_api_startup(const void * socket_api){
 		return -1;
 	}
 
-
-
 	mcu_debug_log_info(MCU_DEBUG_SOCKET, "TCPIP Init");
 	tcpip_init(tcpip_init_done, 0);
 
 	usleep(100*1000);
 
 	//state is passed around as part of netif, it needs to link back to config
+	mcu_debug_printf("socket api: %p config:%p state:%p\n", socket_api, config, state);
 	state->config = config;
 
 	mcu_debug_log_info(MCU_DEBUG_SOCKET, "0x%lX 0x%lX", (u32)config, (u32)state);
@@ -316,8 +315,6 @@ int lwip_api_startup(const void * socket_api){
 	usleep(250*1000);
 
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "Start DHCP 0x%lX", config->network_interface_list);
-	dhcp_start(config->network_interface_list);
 
 	return 0;
 }
@@ -337,14 +334,14 @@ int lwip_api_add_netif(struct netif * netif, void * state){
 	}
 
 	netif_add(netif,
-			 #if LWIP_IPV4
-				 (const ip4_addr_t*)IP4_ADDR_ANY, //ip addr
-				 (const ip4_addr_t*)IP4_ADDR_ANY, //ip netmask
-				 (const ip4_addr_t*)IP4_ADDR_ANY, //gw
-			 #endif
-				 state,
-				 lwip_api_netif_init,
-				 tcpip_input);
+					#if LWIP_IPV4
+						(const ip4_addr_t*)IP4_ADDR_ANY, //ip addr
+						(const ip4_addr_t*)IP4_ADDR_ANY, //ip netmask
+						(const ip4_addr_t*)IP4_ADDR_ANY, //gw
+					#endif
+						state,
+						lwip_api_netif_init,
+						tcpip_input);
 
 
 
@@ -359,45 +356,35 @@ int lwip_api_add_netif(struct netif * netif, void * state){
 void lwip_input_thread(void * arg){
 	//this thread monitors each network interface for incoming traffic
 	struct netif * netif = (struct netif*)arg;
-	int is_up = 0;
 	int input_result = 0;
-
 
 	mcu_debug_log_info(MCU_DEBUG_SOCKET, "Start thread %s", netif->hostname);
 
-	if( lwip_api_netif_is_link_up(netif) > 0 ){
-		mcu_debug_log_info(MCU_DEBUG_SOCKET, "%s is up", netif->hostname);
+	while(1){
+
+		mcu_debug_log_info(MCU_DEBUG_SOCKET, "netif %p: is waiting to come up", netif);
+		while( lwip_api_netif_is_link_up(netif) <= 0 ){
+			usleep(100*1000);
+		}
+
+		mcu_debug_log_info(MCU_DEBUG_SOCKET, "netif %p: is up", netif);
 		netif_set_link_up(netif);
 		netif_set_up(netif);
-		is_up = 1;
-		mcu_debug_log_info(MCU_DEBUG_SOCKET, "Net if 0x%lX is up %d", (u32)netif, netif_is_up(netif));
-	} else {
-		mcu_debug_log_info(MCU_DEBUG_SOCKET, "%s is down", netif->hostname);
-	}
+		dhcp_start(netif);
 
-	while(1){
-#if 1
-		input_result = ERR_IF;
-		if( netif_is_up(netif) ){
+		while( lwip_api_netif_is_link_up(netif) > 0 ){
 			input_result = lwip_api_netif_input(netif);
 
-			//if interface goes up -- call netif_set_link_up()
-			//if interface goes down -- call netif_set_link_down()
-
-			if( lwip_api_netif_is_link_up(netif) <= 0 ){
-				if( is_up ){
-					mcu_debug_log_warning(MCU_DEBUG_SOCKET, "%s link is down", netif->hostname);
-					is_up = 0;
-				}
-				//netif_set_link_down(netif);
-			} else {
-				//netif_set_link_up(netif);
+			//ERR_OK means data arrived -- keep reading the if until no data arrives -- then sleep
+			if( input_result != ERR_OK ){
+				usleep(10*1000); //wait a bit before checking for a frame again
 			}
 		}
-#endif
-		if( input_result != ERR_OK ){
-			usleep(10*1000); //wait a bit before checking for a frame again
-		}
+
+		mcu_debug_log_info(MCU_DEBUG_SOCKET, "netif %p: is down", netif);
+		netif_set_link_down(netif);
+		netif_set_down(netif);
+		dhcp_stop(netif);
 	}
 
 }
@@ -408,7 +395,7 @@ char * lwip_inet_ntoa(struct in_addr addr){ return ip4addr_ntoa((const ip4_addr_
 #if 0
 const char * lwip_inet_ntop(int af, const void * src, char * dst, socklen_t size){
 	return (((af) == AF_INET6) ? ip6addr_ntoa_r((const ip6_addr_t*)(src),(dst),(size))
-										: (((af) == AF_INET) ? ip4addr_ntoa_r((const ip4_addr_t*)(src),(dst),(size)) : NULL));
+														 : (((af) == AF_INET) ? ip4addr_ntoa_r((const ip4_addr_t*)(src),(dst),(size)) : NULL));
 }
 int lwip_inet_pton(int af, const char * src, void * dst){
 	return (((af) == AF_INET6) ? ip6addr_aton((src),(ip6_addr_t*)(dst)) : 0);

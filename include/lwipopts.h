@@ -77,9 +77,9 @@
 //#define TCP_DEBUG 0x80
 //#define TCP_INPUT_DEBUG 0x80
 //#define TRACE_DEBUG 0x80
-#define SOCKETS_DEBUG 0x80
+//#define SOCKETS_DEBUG 0x80
 //#define UDP_DEBUG 0x80
-//#define DHCP_DEBUG 0x80
+#define DHCP_DEBUG 0x80
 //#define AUTOIP_DEBUG 0x80
 //#define API_LIB_DEBUG 0x80
 //#define API_MSG_DEBUG 0x80
@@ -103,8 +103,8 @@
 #define CHECKSUM_CHECK_ICMP 1
 #define CHECKSUM_CHECK_ICMP6 1
 
-#define MEM_SIZE                        32768
-#define MEMP_NUM_TCP_SEG                8
+#define MEM_SIZE                        16384
+#define MEMP_NUM_TCP_SEG                2
 #define TCP_MSS                         1460
 #define TCP_WND                         (2 * TCP_MSS)
 #define TCP_SND_BUF                     (2 * TCP_MSS)
@@ -112,7 +112,7 @@
 #define TCP_OVERSIZE                    TCP_MSS
 #define LWIP_WND_SCALE                  1
 #define TCP_RCV_SCALE                   0
-#define PBUF_POOL_SIZE                  16
+#define PBUF_POOL_SIZE                  4
 
 #define TCPIP_THREAD_STACKSIZE          2048
 
