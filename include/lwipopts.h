@@ -71,11 +71,11 @@
 #if defined MCU_DEBUG
 #define LWIP_DEBUG 1
 
-//#define ETHARP_DEBUG 0x80
-//#define TCPIP_DEBUG 0x80
+#define ETHARP_DEBUG 0x80
+#define TCPIP_DEBUG 0x80
 //#define DNS_DEBUG 0x80
-//#define TCP_DEBUG 0x80
-//#define TCP_INPUT_DEBUG 0x80
+#define TCP_DEBUG 0x80
+#define TCP_INPUT_DEBUG 0x80
 //#define TRACE_DEBUG 0x80
 //#define SOCKETS_DEBUG 0x80
 //#define UDP_DEBUG 0x80
@@ -84,7 +84,7 @@
 //#define API_LIB_DEBUG 0x80
 //#define API_MSG_DEBUG 0x80
 //#define NETIF_DEBUG 0x80
-//#define IP_DEBUG 0x80
+#define IP_DEBUG 0x80
 //#define TCP_CWND_DEBUG 0x80
 //#define PBUF_DEBUG 0x80
 #define LWIP_DBG_MIN_LEVEL 0
@@ -92,11 +92,12 @@
 #endif
 
 /* Checksum settings */
-#define CHECKSUM_GEN_IP 0
-#define CHECKSUM_GEN_UDP 0
-#define CHECKSUM_GEN_TCP 0
-#define CHECKSUM_GEN_ICMP 0
-#define CHECKSUM_GEN_ICMP6 0
+//STM32 ethernet has checksum generation built-in
+#define CHECKSUM_GEN_IP 1
+#define CHECKSUM_GEN_UDP 1
+#define CHECKSUM_GEN_TCP 1
+#define CHECKSUM_GEN_ICMP 1
+#define CHECKSUM_GEN_ICMP6 1
 #define CHECKSUM_CHECK_IP 1
 #define CHECKSUM_CHECK_UDP 1
 #define CHECKSUM_CHECK_TCP 1

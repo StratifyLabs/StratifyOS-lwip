@@ -28,53 +28,25 @@ static int lwip_api_netif_is_link_up(struct netif * netif);
 static err_t lwip_api_netif_init(struct netif * netif);
 static err_t lwip_api_netif_input(struct netif *netif);
 static err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p);
-static int lwip_api_add_netif(struct netif * netif, void * state);
+static int lwip_api_add_netif(const lwip_api_netif_config_t* netif_config);
+
 
 err_t lwip_api_netif_init(struct netif * netif){
 	/* set MAC hardware address length */
-	const lwip_api_config_t * config;
-	lwip_api_state_t * state = netif->state;
-	config = state->config;
+	const lwip_api_netif_config_t * config = netif->state;
 
 	mcu_debug_log_info(MCU_DEBUG_SOCKET, "Host name is %s", config->host_name);
 	netif->hostname = config->host_name;
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "HW Addr length %d", ETHARP_HWADDR_LEN);
-	netif->hwaddr_len = ETHARP_HWADDR_LEN;
-
-	/* set MAC hardware address */
-
-	//how to set HW MAC address??
-	netif->hwaddr[0]= config->hw_addr[0];
-	netif->hwaddr[1]= config->hw_addr[1];
-	netif->hwaddr[2]= config->hw_addr[2];
-	netif->hwaddr[3]= config->hw_addr[3];
-	netif->hwaddr[4]= config->hw_addr[4];
-	netif->hwaddr[5]= config->hw_addr[5];
-
-	MIB2_INIT_NETIF(netif, snmp_ifType_ethernet_csmacd, 10000);
-
-
 	/* maximum transfer unit */
-
-	//netif->mtu = 1500;
-	netif->mtu = config->mtu;
 	netif->output = etharp_output;
 #if LWIP_IPV6
 	netif->output_ip6 = ethip6_output;
 #endif
 
 	netif->linkoutput = lwip_api_netif_output;
-
-	/* device capabilities */
-	/* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
-	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_ETHERNET;
-
-	//need to open and configure the device -- similar to how fatfs opens files
-
 	netif->name[0] = config->device_config.name[0];
 	netif->name[1] = config->device_config.name[1];
-	//netif->ethaddr = (struct eth_addr *)&(netif->hwaddr[0]);
 
 	netif_attr_t attr;
 	int result;
@@ -91,49 +63,66 @@ err_t lwip_api_netif_init(struct netif * netif){
 		return ERR_IF;
 	}
 
+	netif_info_t netif_device_info;
+	if( (result = sysfs_shared_ioctl(
+				 &config->device_config,
+				 I_NETIF_GETINFO,
+				 &netif_device_info)) < 0 ){
+		mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to open network interface %s (%d, %d)", config->device_config.name, result, errno);
+		return ERR_IF;
+	}
+
+	memcpy(netif->hwaddr, netif_device_info.mac_address, NETIF_MAX_HWADDR_LEN);
+	netif->hwaddr_len = ETHARP_HWADDR_LEN;
+	netif->mtu = netif_device_info.mtu;
+	netif->flags =
+			(netif_device_info.o_flags & NETIF_FLAG_IS_BROADCAST ? NETIF_FLAG_BROADCAST : 0)
+			| (netif_device_info.o_flags & NETIF_FLAG_IS_ETHERNET ? NETIF_FLAG_ETHERNET : 0)
+			| (netif_device_info.o_flags & NETIF_FLAG_IS_ETHERNET_ARP ? NETIF_FLAG_ETHARP : 0)
+			| (netif_device_info.o_flags & NETIF_FLAG_IS_IGMP ? NETIF_FLAG_IGMP : 0)
+			| (netif_device_info.o_flags & NETIF_FLAG_IS_MLD6 ? NETIF_FLAG_MLD6 : 0);
+
+	MIB2_INIT_NETIF(netif, snmp_ifType_ethernet_csmacd, 10000);
+
 	mcu_debug_log_info(MCU_DEBUG_SOCKET, "NETIF Init complete");
 	return ERR_OK;
 }
 
 int lwip_api_netif_is_link_up(struct netif * netif){
-	lwip_api_state_t * state = netif->state;
-	const lwip_api_config_t * config = state->config;
+	const lwip_api_netif_config_t * config = netif->state;
 	netif_attr_t attr;
 	attr.o_flags = NETIF_FLAG_IS_LINK_UP;
 	return sysfs_shared_ioctl(&config->device_config, I_NETIF_SETATTR, &attr);
 }
 
 int lwip_api_netif_set_link_up(struct netif * netif){
-	lwip_api_state_t * state = netif->state;
-	const lwip_api_config_t * config = state->config;
+	const lwip_api_netif_config_t * config = netif->state;
 	netif_attr_t attr;
 	attr.o_flags = NETIF_FLAG_SET_LINK_UP;
 	return sysfs_shared_ioctl(&config->device_config, I_NETIF_SETATTR, &attr);
 }
 
 int lwip_api_netif_set_link_down(struct netif * netif){
-	lwip_api_state_t * state = netif->state;
-	const lwip_api_config_t * config = state->config;
+	const lwip_api_netif_config_t * config = netif->state;
 	netif_attr_t attr;
 	attr.o_flags = NETIF_FLAG_SET_LINK_DOWN;
 	return sysfs_shared_ioctl(&config->device_config, I_NETIF_SETATTR, &attr);
 }
 
 err_t lwip_api_netif_input(struct netif *netif){
-	const lwip_api_config_t * config;
-	lwip_api_state_t * state = netif->state;
-	config = state->config;
+	const lwip_api_netif_config_t * config = netif->state;
 	struct pbuf *q;
 	struct pbuf *p;
 	int len;
 
-	config = state->config;
 	u16 offset = 0;
 
 	/* Obtain the size of the packet and put it into the "len"
 		variable. */
 	//len = ioctl(netif_dev->fd, I_NETIF_LEN);
-	len = sysfs_shared_read(&config->device_config, 0, config->packet_buffer, config->max_packet_size);
+	mcu_debug_printf("read into %p:%d\n", config->packet_buffer, config->packet_buffer_size);
+	len = sysfs_shared_read(
+				&config->device_config, 0, config->packet_buffer, config->packet_buffer_size);
 	if( len <= 0 ){
 		return ERR_IF;
 	}
@@ -146,8 +135,7 @@ err_t lwip_api_netif_input(struct netif *netif){
 #endif
 
 	/* We allocate a pbuf chain of pbufs from the pool. */
-	p = pbuf_alloc(PBUF_RAW, (u16_t)len, PBUF_POOL);
-
+	p = pbuf_alloc_reference(config->packet_buffer, (u16_t)len, PBUF_REF);
 
 	if (p != NULL) {
 
@@ -213,9 +201,7 @@ err_t lwip_api_netif_input(struct netif *netif){
 }
 
 err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p){
-	const lwip_api_config_t * config;
-	lwip_api_state_t * state = netif->state;
-	config = state->config;
+	const lwip_api_netif_config_t * config = netif->state;
 	struct pbuf *q;
 	int result;
 
@@ -279,12 +265,11 @@ void tcpip_init_done(void * args){
 int lwip_api_startup(const void * socket_api){
 
 	const lwip_api_config_t * config = ((const sos_socket_api_t*)socket_api)->config;
-	lwip_api_state_t * state = ((const sos_socket_api_t*)socket_api)->state;
 	u32 i;
 
 	sys_init();
 
-	if( config->network_interface_count == 0 ){
+	if( config->netif_config_count == 0 ){
 		mcu_debug_log_error(MCU_DEBUG_SOCKET, "No network interfaces");
 		return -1;
 	}
@@ -295,21 +280,21 @@ int lwip_api_startup(const void * socket_api){
 	usleep(100*1000);
 
 	//state is passed around as part of netif, it needs to link back to config
-	mcu_debug_printf("socket api: %p config:%p state:%p\n", socket_api, config, state);
-	state->config = config;
+	mcu_debug_printf("socket api: %p config:%p\n", socket_api, config);
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "0x%lX 0x%lX", (u32)config, (u32)state);
-	for(i = 0; i < config->network_interface_count; i++){
-		mcu_debug_log_info(MCU_DEBUG_SOCKET, "Add NEFIF %d of %d", i+1, config->network_interface_count);
-		if( lwip_api_add_netif(config->network_interface_list + i, state) < 0 ){
-			mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to add interface %d of %d", i+1, config->network_interface_count);
+	for(i = 0; i < config->netif_config_count; i++){
+		mcu_debug_log_info(MCU_DEBUG_SOCKET, "Add NETIF %d of %d", i+1, config->netif_config_count);
+		if( lwip_api_add_netif(config->netif_config + i) < 0 ){
+			mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to add interface %d of %d", i+1, config->netif_config_count);
 			return -1;
 		}
 	}
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "Set default network interface");
+	mcu_debug_log_info(MCU_DEBUG_SOCKET, "Set default network interface %p", config->netif_config[0].lwip_netif);
 
-	netif_set_default(config->network_interface_list);
+	netif_set_default(config->netif_config[0].lwip_netif);
+
+	MCU_DEBUG_LINE_TRACE();
 
 	//allow NETIF to come up
 	usleep(250*1000);
@@ -325,7 +310,7 @@ int lwip_api_deinitialize(){
 	return 0;
 }
 
-int lwip_api_add_netif(struct netif * netif, void * state){
+int lwip_api_add_netif(const lwip_api_netif_config_t * netif_config){
 
 	if( getpid() != 0 ){
 		//this can only be called from the kernel task
@@ -333,13 +318,15 @@ int lwip_api_add_netif(struct netif * netif, void * state){
 		return -1;
 	}
 
+	struct netif * netif = netif_config->lwip_netif;
+
 	netif_add(netif,
 					#if LWIP_IPV4
 						(const ip4_addr_t*)IP4_ADDR_ANY, //ip addr
 						(const ip4_addr_t*)IP4_ADDR_ANY, //ip netmask
 						(const ip4_addr_t*)IP4_ADDR_ANY, //gw
 					#endif
-						state,
+						(void*)netif_config,
 						lwip_api_netif_init,
 						tcpip_input);
 

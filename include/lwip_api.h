@@ -9,14 +9,16 @@
 #include "lwip/sockets.h"
 
 typedef struct {
-	sysfs_shared_config_t device_config; //make this the first member
-	u8 hw_addr[6];
-	u16 mtu /*! Default value should be 1500 */;
+	sysfs_shared_config_t device_config; //identifies the device to use
+	struct netif * lwip_netif; //pointer to the RAM for lwip netif
+	u8 * packet_buffer; //pointer to packet buffer RAM
+	u16 packet_buffer_size;
 	const char * host_name;
-	struct netif * network_interface_list;
-	u16 network_interface_count;
-	u16 max_packet_size;
-	u8 * packet_buffer;
+} lwip_api_netif_config_t;
+
+typedef struct {
+	const lwip_api_netif_config_t * netif_config;
+	u16 netif_config_count;
 } lwip_api_config_t;
 
 typedef struct {
@@ -25,7 +27,6 @@ typedef struct {
 } lwip_api_netif_t;
 
 typedef struct {
-	sysfs_shared_state_t device_state;
 	const lwip_api_config_t * config;
 } lwip_api_state_t;
 
