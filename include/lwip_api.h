@@ -14,6 +14,7 @@ typedef struct {
 	u8 * packet_buffer; //pointer to packet buffer RAM
 	u16 packet_buffer_size;
 	const char * host_name;
+	void (*netif_status_callback)(struct netif * netif);
 } lwip_api_netif_config_t;
 
 typedef struct {

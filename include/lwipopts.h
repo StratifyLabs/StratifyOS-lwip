@@ -64,6 +64,8 @@
 #define LWIP_SO_RCVBUF 1
 #define LWIP_MPU_COMPATIBLE 1
 
+//this lets LWIP tell the system when the IP address changes
+#define LWIP_NETIF_STATUS_CALLBACK 1
 
 /* Enable DHCP to test it */
 #define LWIP_DHCP                       1

@@ -331,6 +331,7 @@ int lwip_api_add_netif(const lwip_api_netif_config_t * netif_config){
 						tcpip_input);
 
 
+	netif_set_status_callback(netif, netif_config->netif_status_callback);
 
 	//create a thread to monitor the new interface - for up/down, etc
 	sys_thread_new("netif", lwip_input_thread, netif, 1024*2, 0);
