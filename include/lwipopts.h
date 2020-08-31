@@ -95,11 +95,18 @@
 
 /* Checksum settings */
 //STM32 ethernet has checksum generation built-in
-#define CHECKSUM_GEN_IP 1
-#define CHECKSUM_GEN_UDP 1
-#define CHECKSUM_GEN_TCP 1
-#define CHECKSUM_GEN_ICMP 1
-#define CHECKSUM_GEN_ICMP6 1
+#if _LWIP_NO_CRC
+#define CHECKSUM_GEN 0
+#else
+#define CHECKSUM_GEN 1
+#endif
+
+#define CHECKSUM_GEN_IP CHECKSUM_GEN
+#define CHECKSUM_GEN_UDP CHECKSUM_GEN
+#define CHECKSUM_GEN_TCP CHECKSUM_GEN
+#define CHECKSUM_GEN_ICMP CHECKSUM_GEN
+#define CHECKSUM_GEN_ICMP6 CHECKSUM_GEN
+
 #define CHECKSUM_CHECK_IP 1
 #define CHECKSUM_CHECK_UDP 1
 #define CHECKSUM_CHECK_TCP 1

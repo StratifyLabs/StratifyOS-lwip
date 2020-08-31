@@ -18,3 +18,13 @@ include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-lib-std.cmake)
 set(SOS_CONFIG debug)
 set(SOS_INCLUDE_DIRECTORIES include ${LWIP_NAME}/src/include)
 include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-lib-std.cmake)
+
+set(SOS_CONFIG release)
+set(SOS_OPTION kernel_nocrc)
+set(SOS_DEFINITIONS _LWIP_NO_CRC=1)
+set(SOS_INCLUDE_DIRECTORIES include ${LWIP_NAME}/src/include)
+include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-lib-std.cmake)
+
+set(SOS_CONFIG debug)
+set(SOS_INCLUDE_DIRECTORIES include ${LWIP_NAME}/src/include)
+include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-lib-std.cmake)

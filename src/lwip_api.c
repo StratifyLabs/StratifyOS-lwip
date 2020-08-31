@@ -68,7 +68,7 @@ err_t lwip_api_netif_init(struct netif * netif){
 				 &config->device_config,
 				 I_NETIF_GETINFO,
 				 &netif_device_info)) < 0 ){
-		mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to open network interface %s (%d, %d)", config->device_config.name, result, errno);
+		mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to get info from netif device (%d,%d)", result, errno);
 		return ERR_IF;
 	}
 
@@ -120,7 +120,6 @@ err_t lwip_api_netif_input(struct netif *netif){
 	/* Obtain the size of the packet and put it into the "len"
 		variable. */
 	//len = ioctl(netif_dev->fd, I_NETIF_LEN);
-	mcu_debug_printf("read into %p:%d\n", config->packet_buffer, config->packet_buffer_size);
 	len = sysfs_shared_read(
 				&config->device_config, 0, config->packet_buffer, config->packet_buffer_size);
 	if( len <= 0 ){
