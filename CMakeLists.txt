@@ -1,44 +1,63 @@
-cmake_minimum_required (VERSION 3.6)
+cmake_minimum_required (VERSION 3.12)
 
-
-# Grab the SDK location
-if(NOT DEFINED SOS_SDK_PATH)
-	if(DEFINED ENV{SOS_SDK_PATH})
-		set(SOS_SDK_PATH $ENV{SOS_SDK_PATH})
-	elseif( ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" )
-		message(WARNING "default SDK locations are deprecated")
-		set(SOS_SDK_PATH /Applications/StratifyLabs-SDK)
-	elseif( ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows" )
-		message(WARNING "default SDK locations are deprecated")
-		set(SOS_SDK_PATH C:/StratifyLabs-SDK)
-	elseif( ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux" )
-		message(WARNING "default SDK locations are deprecated")
-		set(SOS_SDK_PATH /StratifyLabs-SDK)
-	endif()
-endif()
-if(NOT DEFINED SOS_SDK_PATH)
-	message(FATAL_ERROR "Please set environment variable SOS_SDK_PATH to location of the StratifyLabs-SDK directory")
-endif()
-set(SOS_TOOLCHAIN_CMAKE_PATH ${SOS_SDK_PATH}/Tools/gcc/arm-none-eabi/cmake)
-
-include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-variables.cmake)
-
-if( ${SOS_BUILD_CONFIG} STREQUAL arm )
-  set(CMAKE_TOOLCHAIN_FILE ${SOS_TOOLCHAIN_CMAKE_PATH}/sos-lib-toolchain.cmake)
-elseif( ${SOS_BUILD_CONFIG} STREQUAL link )
-  set(CMAKE_TOOLCHAIN_FILE ${SOS_TOOLCHAIN_CMAKE_PATH}/link-toolchain.cmake)
+if(NOT SOS_SDK_PATH)
+	set(SOS_SDK_PATH $ENV{SOS_SDK_PATH})
 endif()
 
-set(SOS_NAME lwip)
-project(${SOS_NAME} CXX C)
+set(CMAKE_MODULE_PATH ${SOS_SDK_PATH}/Tools/gcc/cmake)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_MODULE_PATH}/sos-toolchain.cmake)
+include(sos-sdk)
 
-set(LWIP_NAME lwip-2.1.2)
+if(NOT DEFINED IS_SDK)
+	include(StratifyAPI)
+endif()
 
-install(DIRECTORY include/ DESTINATION include)
-install(DIRECTORY ${LWIP_NAME}/src/include/ DESTINATION include)
-set(SOS_DEFINITIONS HAVE_LWIP_SOCKETS_H=1)
-set(SOS_BUILD_FLAGS -Wno-address)
-set(SOS_INCLUDE_DIRECTORIES include)
+project(lwip CXX C)
+
+sos_sdk_library_target(RELEASE ${PROJECT_NAME} "${LIB_OPTION}" release ${SOS_ARCH})
 
 
-include( ${CMAKE_SOURCE_DIR}/${SOS_BUILD_CONFIG}.cmake )
+sos_sdk_add_subdirectory(PRIVATE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src)
+sos_sdk_add_subdirectory(INTERFACE_SOURCES include)
+
+add_library(${RELEASE_TARGET} STATIC)
+
+set_property(TARGET ${RELEASE_TARGET} PROPERTY CXX_STANDARD 17)
+
+target_sources(${RELEASE_TARGET}
+	PRIVATE
+	${INTERFACE_SOURCES}
+	${PRIVATE_SOURCES}
+	${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cmake
+	)
+
+target_include_directories(${RELEASE_TARGET}
+	PUBLIC
+	PRIVATE
+	)
+
+sos_sdk_library_target(DEBUG ${PROJECT_NAME} "${LIB_OPTION}" debug ${SOS_ARCH})
+add_library(${DEBUG_TARGET} STATIC)
+sos_sdk_copy_target(${RELEASE_TARGET} ${DEBUG_TARGET})
+sos_sdk_library_add_arch_targets("${DEBUG_OPTIONS}" ${SOS_ARCH} "")
+sos_sdk_library_add_arch_targets("${RELEASE_OPTIONS}" ${SOS_ARCH} "")
+
+target_compile_options(${RELEASE_TARGET}
+	PRIVATE
+	-Os
+	)
+
+target_compile_options(${DEBUG_TARGET}
+	PRIVATE
+	-Os
+	)
+
+install(DIRECTORY include/
+	DESTINATION include/${PROJECT_NAME}
+	PATTERN CMakelists.txt EXCLUDE)
+
+install(FILES ${PROJECT_NAME}.cmake
+	DESTINATION cmake/targets)
+
+
+

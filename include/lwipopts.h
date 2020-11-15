@@ -32,9 +32,10 @@
 #ifndef LWIP_HDR_LWIPOPTS_H__
 #define LWIP_HDR_LWIPOPTS_H__
 
-#include <unistd.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <mcu/debug.h>
+#include <unistd.h>
 
 /* Prevent having to link sys_arch.c (we don't test the API layers in unit tests) */
 #define NO_SYS                          0
@@ -63,6 +64,8 @@
 #define LWIP_SO_SNDTIMEO 1
 #define LWIP_SO_RCVBUF 1
 #define LWIP_MPU_COMPATIBLE 1
+
+//#define LWIP_ERRNO_INCLUDE <errno.h>
 
 //this lets LWIP tell the system when the IP address changes
 #define LWIP_NETIF_STATUS_CALLBACK 1
