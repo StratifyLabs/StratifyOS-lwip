@@ -1,7 +1,7 @@
 
 #include <sos/dev/netif.h>
 #include <sos/fs/sysfs.h>
-#include <mcu/debug.h>
+#include <sos/debug.h>
 #include <errno.h>
 
 #include <cortexm/cortexm.h>
@@ -35,7 +35,7 @@ err_t lwip_api_netif_init(struct netif * netif){
 	/* set MAC hardware address length */
 	const lwip_api_netif_config_t * config = netif->state;
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "Host name is %s", config->host_name);
+	sos_debug_log_info(SOS_DEBUG_SOCKET, "Host name is %s", config->host_name);
 	netif->hostname = config->host_name;
 
 	/* maximum transfer unit */
@@ -52,14 +52,14 @@ err_t lwip_api_netif_init(struct netif * netif){
 	int result;
 
 	if( (result = sysfs_shared_open(&config->device_config)) < 0 ){
-		mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to open network interface %s (%d, %d)", config->device_config.name, result, errno);
+		sos_debug_log_error(SOS_DEBUG_SOCKET, "Failed to open network interface %s (%d, %d)", config->device_config.name, result, errno);
 		return ERR_IF;
 	}
 
 	attr.o_flags = NETIF_FLAG_INIT;
 	result = sysfs_shared_ioctl(&config->device_config, I_NETIF_SETATTR, &attr);
 	if( result < 0 ){
-		mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to init network interface (%d, %d)", result, errno);
+		sos_debug_log_error(SOS_DEBUG_SOCKET, "Failed to init network interface (%d, %d)", result, errno);
 		return ERR_IF;
 	}
 
@@ -68,7 +68,7 @@ err_t lwip_api_netif_init(struct netif * netif){
 				 &config->device_config,
 				 I_NETIF_GETINFO,
 				 &netif_device_info)) < 0 ){
-		mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to get info from netif device (%d,%d)", result, errno);
+		sos_debug_log_error(SOS_DEBUG_SOCKET, "Failed to get info from netif device (%d,%d)", result, errno);
 		return ERR_IF;
 	}
 
@@ -84,7 +84,7 @@ err_t lwip_api_netif_init(struct netif * netif){
 
 	MIB2_INIT_NETIF(netif, snmp_ifType_ethernet_csmacd, 10000);
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "NETIF Init complete");
+	sos_debug_log_info(SOS_DEBUG_SOCKET, "NETIF Init complete");
 	return ERR_OK;
 }
 
@@ -126,7 +126,7 @@ err_t lwip_api_netif_input(struct netif *netif){
 		return ERR_IF;
 	}
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "Got %d bytes", len);
+	sos_debug_log_info(SOS_DEBUG_SOCKET, "Got %d bytes", len);
 
 
 #if ETH_PAD_SIZE
@@ -206,7 +206,7 @@ err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p){
 
 	//initiate transfer();
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "write interface (%d, %p)", p->tot_len, p);
+	sos_debug_log_info(SOS_DEBUG_SOCKET, "write interface (%d, %p)", p->tot_len, p);
 
 #if ETH_PAD_SIZE
 	pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
@@ -221,19 +221,19 @@ err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p){
 #if 0
 		for(int i = 0; i < q->len; i++){
 			if( i % 16 == 0 ){
-				mcu_debug_printf("\n%p 0x%04X:", i, q->payload);
+				sos_debug_printf("\n%p 0x%04X:", i, q->payload);
 			}
-			mcu_debug_printf("%02X ", ((u8*)q->payload)[i]);
+			sos_debug_printf("%02X ", ((u8*)q->payload)[i]);
 		}
-		mcu_debug_printf("\n");
+		sos_debug_printf("\n");
 #endif
 
 
 		if( (result = sysfs_shared_write(&config->device_config, 0, q->payload, q->len)) != q->len ){
-			mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to write (%d,%d)\n", result, errno);
+			sos_debug_log_error(SOS_DEBUG_SOCKET, "Failed to write (%d,%d)\n", result, errno);
 			return ERR_IF;
 		}
-		mcu_debug_log_info(MCU_DEBUG_SOCKET, "sent:%d", result);
+		sos_debug_log_info(SOS_DEBUG_SOCKET, "sent:%d", result);
 	}
 
 
@@ -258,7 +258,7 @@ err_t lwip_api_netif_output(struct netif *netif, struct pbuf *p){
 void tcpip_init_done(void * args){
 	MCU_UNUSED_ARGUMENT(args);
 	usleep(800*1000);
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "TCPIP INIT DONE");
+	sos_debug_log_info(SOS_DEBUG_SOCKET, "TCPIP INIT DONE");
 }
 
 int lwip_api_startup(const void * socket_api){
@@ -269,31 +269,31 @@ int lwip_api_startup(const void * socket_api){
 	sys_init();
 
 	if( config->netif_config_count == 0 ){
-		mcu_debug_log_error(MCU_DEBUG_SOCKET, "No network interfaces");
+		sos_debug_log_error(SOS_DEBUG_SOCKET, "No network interfaces");
 		return -1;
 	}
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "TCPIP Init");
+	sos_debug_log_info(SOS_DEBUG_SOCKET, "TCPIP Init");
 	tcpip_init(tcpip_init_done, 0);
 
 	usleep(100*1000);
 
 	//state is passed around as part of netif, it needs to link back to config
-	mcu_debug_printf("socket api: %p config:%p\n", socket_api, config);
+	sos_debug_printf("socket api: %p config:%p\n", socket_api, config);
 
 	for(i = 0; i < config->netif_config_count; i++){
-		mcu_debug_log_info(MCU_DEBUG_SOCKET, "Add NETIF %d of %d", i+1, config->netif_config_count);
+		sos_debug_log_info(SOS_DEBUG_SOCKET, "Add NETIF %d of %d", i+1, config->netif_config_count);
 		if( lwip_api_add_netif(config->netif_config + i) < 0 ){
-			mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to add interface %d of %d", i+1, config->netif_config_count);
+			sos_debug_log_error(SOS_DEBUG_SOCKET, "Failed to add interface %d of %d", i+1, config->netif_config_count);
 			return -1;
 		}
 	}
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "Set default network interface %p", config->netif_config[0].lwip_netif);
+	sos_debug_log_info(SOS_DEBUG_SOCKET, "Set default network interface %p", config->netif_config[0].lwip_netif);
 
 	netif_set_default(config->netif_config[0].lwip_netif);
 
-	MCU_DEBUG_LINE_TRACE();
+	SOS_DEBUG_LINE_TRACE();
 
 	//allow NETIF to come up
 	usleep(250*1000);
@@ -313,7 +313,7 @@ int lwip_api_add_netif(const lwip_api_netif_config_t * netif_config){
 
 	if( getpid() != 0 ){
 		//this can only be called from the kernel task
-		mcu_debug_log_error(MCU_DEBUG_SOCKET, "Cannot add netif except from kernel");
+		sos_debug_log_error(SOS_DEBUG_SOCKET, "Cannot add netif except from kernel");
 		return -1;
 	}
 
@@ -336,7 +336,7 @@ int lwip_api_add_netif(const lwip_api_netif_config_t * netif_config){
 	sys_thread_new("netif", lwip_input_thread, netif, 1024*2, 0);
 
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "Added netif %s", netif->hostname);
+	sos_debug_log_info(SOS_DEBUG_SOCKET, "Added netif %s", netif->hostname);
 	return 0;
 }
 
@@ -345,16 +345,16 @@ void lwip_input_thread(void * arg){
 	struct netif * netif = (struct netif*)arg;
 	int input_result = 0;
 
-	mcu_debug_log_info(MCU_DEBUG_SOCKET, "Start thread %s", netif->hostname);
+	sos_debug_log_info(SOS_DEBUG_SOCKET, "Start thread %s", netif->hostname);
 
 	while(1){
 
-		mcu_debug_log_info(MCU_DEBUG_SOCKET, "netif %p: is waiting to come up", netif);
+		sos_debug_log_info(SOS_DEBUG_SOCKET, "netif %p: is waiting to come up", netif);
 		while( lwip_api_netif_is_link_up(netif) <= 0 ){
 			usleep(100*1000);
 		}
 
-		mcu_debug_log_info(MCU_DEBUG_SOCKET, "netif %p: is up", netif);
+		sos_debug_log_info(SOS_DEBUG_SOCKET, "netif %p: is up", netif);
 		netif_set_link_up(netif);
 		netif_set_up(netif);
 		dhcp_start(netif);
@@ -368,7 +368,7 @@ void lwip_input_thread(void * arg){
 			}
 		}
 
-		mcu_debug_log_info(MCU_DEBUG_SOCKET, "netif %p: is down", netif);
+		sos_debug_log_info(SOS_DEBUG_SOCKET, "netif %p: is down", netif);
 		netif_set_link_down(netif);
 		netif_set_down(netif);
 		dhcp_stop(netif);

@@ -9,7 +9,7 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_MODULE_PATH}/sos-toolchain.cmake)
 include(sos-sdk)
 
 if(NOT DEFINED IS_SDK)
-	include(StratifyAPI)
+	include(API)
 endif()
 
 project(lwip CXX C)
@@ -39,8 +39,6 @@ target_include_directories(${RELEASE_TARGET}
 sos_sdk_library_target(DEBUG ${PROJECT_NAME} "${LIB_OPTION}" debug ${SOS_ARCH})
 add_library(${DEBUG_TARGET} STATIC)
 sos_sdk_copy_target(${RELEASE_TARGET} ${DEBUG_TARGET})
-sos_sdk_library_add_arch_targets("${DEBUG_OPTIONS}" ${SOS_ARCH} "")
-sos_sdk_library_add_arch_targets("${RELEASE_OPTIONS}" ${SOS_ARCH} "")
 
 target_compile_options(${RELEASE_TARGET}
 	PRIVATE
@@ -51,6 +49,10 @@ target_compile_options(${DEBUG_TARGET}
 	PRIVATE
 	-Os
 	)
+
+sos_sdk_library_add_arch_targets("${DEBUG_OPTIONS}" ${SOS_ARCH} "")
+sos_sdk_library_add_arch_targets("${RELEASE_OPTIONS}" ${SOS_ARCH} "")
+
 
 install(DIRECTORY include/
 	DESTINATION include/${PROJECT_NAME}

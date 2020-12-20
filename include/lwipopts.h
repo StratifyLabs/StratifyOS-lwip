@@ -34,7 +34,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <mcu/debug.h>
+#include <sos/debug.h>
 #include <unistd.h>
 
 /* Prevent having to link sys_arch.c (we don't test the API layers in unit tests) */
@@ -74,7 +74,7 @@
 #define LWIP_DHCP                       1
 
 #if defined MCU_DEBUG
-#define LWIP_DEBUG 1
+#define LWIP_DEBUG 0
 
 #define ETHARP_DEBUG 0x80
 #define TCPIP_DEBUG 0x80

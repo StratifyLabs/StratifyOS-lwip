@@ -33,7 +33,7 @@
 #define LWIP_ARCH_CC_H_
 
 #include <mcu/types.h>
-#include <mcu/debug.h>
+#include <sos/debug.h>
 /* Include some files for defining library routines */
 #include <string.h>
 #include <sys/time.h>
@@ -68,9 +68,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 /* Plaform specific diagnostic output */
-#define LWIP_PLATFORM_DIAG(x)	do {mcu_debug_printf x;} while(0)
+#define LWIP_PLATFORM_DIAG(x)	do {sos_debug_printf x;} while(0)
 
-#define LWIP_PLATFORM_ASSERT(x) do { mcu_debug_printf("Assertion \"%s\" failed at line %d in %s\n", \
+#define LWIP_PLATFORM_ASSERT(x) do { sos_debug_printf("Assertion \"%s\" failed at line %d in %s\n", \
                                      x, __LINE__, __FILE__); } while(0)
 
 #define LWIP_RAND() ((u32_t)rand())

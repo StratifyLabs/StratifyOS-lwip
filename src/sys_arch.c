@@ -48,7 +48,7 @@
 
 
 #include <sos/sos.h>
-#include <mcu/debug.h>
+#include <sos/debug.h>
 #include <semaphore.h>
 #include <string.h>
 #include <sys/time.h>
@@ -149,19 +149,19 @@ sys_thread_t sys_thread_new(
     pthread_attr_init(&attr);
 
     if( pthread_attr_setstacksize(&attr, stacksize) < 0 ){
-        mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to set stack size");
+        sos_debug_log_error(SOS_DEBUG_SOCKET, "Failed to set stack size");
     }
 
 #if 0
     if( pthread_attr_setschedpolicy(&attr, SCHED_RR) < 0 ){
-        mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to set policy");
+        sos_debug_log_error(SOS_DEBUG_SOCKET, "Failed to set policy");
     }
 
     struct sched_param param;
     param.sched_priority = prio;
 
     if( pthread_attr_setschedparam(&attr, &param) < 0 ){
-        mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to set priority");
+        sos_debug_log_error(SOS_DEBUG_SOCKET, "Failed to set priority");
     }
 #endif
 
@@ -171,7 +171,7 @@ sys_thread_t sys_thread_new(
                             arg);
 
     if( result < 0 ){
-        mcu_debug_log_info(MCU_DEBUG_SOCKET, "Failed to create thread");
+        sos_debug_log_info(SOS_DEBUG_SOCKET, "Failed to create thread");
         abort();
     }
 
@@ -408,7 +408,7 @@ static struct sys_sem * sys_sem_new_internal(u8_t count){
             return 0;
         }
         //this will be sem_init()
-        mcu_debug_log_info(MCU_DEBUG_SOCKET, "SEM Init %p %p", sem, sem->sem);
+        sos_debug_log_info(SOS_DEBUG_SOCKET, "SEM Init %p %p", sem, sem->sem);
         sem_init(sem->sem, 1, count);
     }
     return sem;
@@ -453,7 +453,7 @@ u32_t sys_arch_sem_wait(struct sys_sem **s, u32_t timeout){
         }
     } else {
         if( sem_wait(sem->sem) < 0 ){
-            mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to wait semaphore %d", errno);
+            sos_debug_log_error(SOS_DEBUG_SOCKET, "Failed to wait semaphore %d", errno);
         }
     }
 
@@ -466,7 +466,7 @@ u32_t sys_arch_sem_wait(struct sys_sem **s, u32_t timeout){
 void sys_sem_signal(struct sys_sem **s){
     struct sys_sem * sem = *s;
     if( sem_post(sem->sem) < 0 ){
-        mcu_debug_log_error(MCU_DEBUG_SOCKET, "Failed to post semaphore %d", errno);
+        sos_debug_log_error(SOS_DEBUG_SOCKET, "Failed to post semaphore %d", errno);
     }
 }
 /*-----------------------------------------------------------------------------------*/
@@ -476,7 +476,7 @@ static void sys_sem_free_internal(struct sys_sem *sem){
         sys_arch_free(sem->sem);
         sys_arch_free(sem);
     } else {
-        mcu_debug_log_warning(MCU_DEBUG_SOCKET, "Freeing invalid sem");
+        sos_debug_log_warning(SOS_DEBUG_SOCKET, "Freeing invalid sem");
     }
 }
 /*-----------------------------------------------------------------------------------*/
@@ -495,7 +495,7 @@ u32_t sys_now(void){
 }
 /*-----------------------------------------------------------------------------------*/
 void sys_init(void){
-	 mcu_debug_log_info(MCU_DEBUG_SOCKET, "Sys Init %p", &threads_mutex);
+	 sos_debug_log_info(SOS_DEBUG_SOCKET, "Sys Init %p", &threads_mutex);
     initialize_mutex(&threads_mutex);
 }
 /*-----------------------------------------------------------------------------------*/
